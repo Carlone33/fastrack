@@ -18,19 +18,24 @@ class RegistroPolicial extends Model
         'numero_oficio',
         'fecha_oficio',
         'nombre_tribunal',
-        'numero_causa_tribunal',
         'numero_expediente_tribunal',
-        'tipo_verificacion',
+        'motivo',
         'verificado',
         'verificadopor_persona_id',
         'fecha_verificacion'
     ];
 
+    /**
+     * Relación: Un registro policial pertenece a una solicitud.
+     */
     public function solicitud(): BelongsTo
     {
-        return $this->belongsTo(Solicitud::class);
+        return $this->belongsTo(Solicitud::class, 'solicitud_id');
     }
 
+    /**
+     * Relación: Persona que verificó el registro policial.
+     */
     public function verificadoPor(): BelongsTo
     {
         return $this->belongsTo(Persona::class, 'verificadopor_persona_id');

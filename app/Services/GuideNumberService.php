@@ -56,4 +56,15 @@ class GuideNumberService
                     ->where('year', $year)
                     ->value('preview');
     }
+
+    public function setCurrentNumber($type, $year, $number)
+    {
+        // Ajusta el modelo y campos según tu estructura real
+        $sequence = \App\Models\GuideSequence::firstOrCreate(
+            ['type' => $type, 'year' => $year],
+            ['last_number' => $number]
+        );
+        $sequence->last_number = $number;
+        $sequence->save();
+    }
 }

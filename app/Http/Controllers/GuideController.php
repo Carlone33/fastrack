@@ -20,20 +20,32 @@ class GuideController extends Controller
             'type' => 'sometimes|string|max:20',
             'prefix' => 'sometimes|string|max:5',
             'digits' => 'sometimes|integer|min:3|max:8',
-            'year' => 'sometimes|integer|digits:4'
+            'year' => 'sometimes|integer|digits:4',
+            'update' => 'sometimes|boolean', // Nuevo parámetro opcional
         ]);
+
+        $update = $validated['update'] ?? false;
 
         $guideNumber = $this->guideNumberService->generate(
             $validated['type'] ?? 'default',
             $validated['prefix'] ?? 'G',
             $validated['digits'] ?? 4,
             $validated['year'] ?? null,
-            false // Generación real
+            false // Modo generación real
         );
+
+        // Si 'update' es true, actualiza el número en la base de datos
+        if ($update) {
+            $this->guideNumberService->setCurrentNumber(
+                $validated['type'] ?? 'default',
+                $validated['year'] ?? null,
+                $guideNumber
+            );
+        }
 
         return response()->json([
             'guide_number' => $guideNumber,
-            'message' => 'Número de guía generado con éxito'
+            'message' => 'Número de guía generado con éxito' . ($update ? ' y actualizado en la base de datos' : ''),
         ]);
     }
 

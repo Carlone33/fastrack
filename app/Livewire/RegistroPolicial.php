@@ -161,16 +161,14 @@ class RegistroPolicial extends Component
 
     public function nextStep()
     {
-        if (  $this->currentStep == 1 && ($this->showAssigned == 1 || $this->showAssigned == 2)) {
+        if ($this->currentStep == 1 && ($this->showAssigned == 1 || $this->showAssigned == 2)) {
             // $this->validateCurrentStep();
 
             $this->currentStep++;
-
         } elseif ($this->currentStep == 2 && $this->showAssigned == 2) {
             // $this->validateCurrentStep();
 
             $this->currentStep += 2;
-
         } elseif ($this->currentStep == 2 && $this->showAssigned == 1) {
             // $this->validateCurrentStep();
 
@@ -179,36 +177,40 @@ class RegistroPolicial extends Component
             // $this->validateCurrentStep();
 
             $this->currentStep++;
-        }else {
+        } else {
             $this->currentStep = $this->currentStep;
         }
     }
     public function prevStep()
     {
 
-        if ( $this->currentStep == 2) {
+        if ($this->currentStep == 2) {
 
             $this->currentStep--;
-
         } elseif ($this->currentStep == 3) {
 
             $this->currentStep--;
-
         } elseif ($this->currentStep == 4 && $this->showAssigned == 1) {
             $this->currentStep--;
-
         } elseif ($this->currentStep == 4 && $this->showAssigned == 2) {
             $this->currentStep -= 2;
-
         } elseif ($this->currentStep == 5) {
 
             $this->currentStep--;
-
         }
     }
 
 
-    public function mount(){
+    public function mount()
+    {
+        // Solo generar la guía al montar el componente (no en cada render)
+        $this->guia = (new GuideNumberService())->generate(
+            'registro_policial',
+            'REGPOL',
+            4,
+            null,
+            true
+        );
         $estados = Nomenclador::where('tipo', 9)->get();
         foreach (['solicitante', 'apoderado'] as $tipo) {
             $this->ubicaciones[$tipo]['estados'] = $estados;
@@ -216,7 +218,8 @@ class RegistroPolicial extends Component
             $this->ubicaciones[$tipo]['parroquias'] = collect();
         }
     }
-    public function updated($property, $value){
+    public function updated($property, $value)
+    {
         foreach (['solicitante', 'apoderado'] as $tipo) {
             if ($property === "ubicaciones.$tipo.estado") {
                 $this->ubicaciones[$tipo]['municipios'] = Nomenclador::where('padre', $value)->get();
@@ -231,10 +234,9 @@ class RegistroPolicial extends Component
         }
     }
 
-    public function submit(){
-
-    $guideService = new GuideNumberService();
-
+    public function submit()
+    {
+        $guideService = new GuideNumberService();
 
         $paratablaPersona = [
             'solicitante' => [
@@ -275,7 +277,7 @@ class RegistroPolicial extends Component
             ]
         ];
 
-            $abogado = $this->abogado_id;
+        $abogado = $this->abogado_id;
 
         $paratablaUbicacion = [
             'solicitante' => [
@@ -345,7 +347,7 @@ class RegistroPolicial extends Component
             }
         }
 
-                $paratablaDireccion = [
+        $paratablaDireccion = [
             'solicitante' => [
                 'estado' => Nomenclador::Find($this->ubicaciones['solicitante']['estado'])?->toArray() ?? null,
                 'municipio' => Nomenclador::Find($this->ubicaciones['solicitante']['municipio'])?->toArray() ?? null,
@@ -401,7 +403,7 @@ class RegistroPolicial extends Component
                 'REGPOL',
                 4,
                 null,
-                true // Modo definitivo
+                false // Modo definitivo: actualiza el número en la DB
             ),
             'numero_oficio' => $this->numero_oficio,
             'fecha_oficio' => $this->fecha_oficio,
@@ -427,192 +429,198 @@ class RegistroPolicial extends Component
             'delito' => mb_strtoupper($this->delito, 'UTF-8'),
         ])->id;
 
-            $dirFoto = 'solicitudes/regpol/' . $this->guia . '/';
+        $dirFoto = 'solicitudes/regpol/' . $this->guia . '/';
 
-            if ($this->makeDirectory($dirFoto)) {
-                $this->updateRecursivePermissions('regpol', '755');
+        if ($this->makeDirectory($dirFoto)) {
+            $this->updateRecursivePermissions('regpol', '755');
+        }
+
+
+        $imagenes_recopiladas = [
+            'foto_solicitante' => [
+                'foto' => $this->foto,
+                'ruta' => $this->foto ? $this->foto->store('registropolicial') : null,
+            ],
+            'cedula_solicitante' => [
+                'foto' => $this->foto_cedula_solicitante,
+                'ruta' => $this->foto_cedula_solicitante ? $this->foto_cedula_solicitante->store('registropolicial') : null,
+            ],
+            'cedula_apoderado' => [
+                'foto' => $this->foto_cedula_apoderado,
+                'ruta' => $this->foto_cedula_apoderado ? $this->foto_cedula_apoderado->store('registropolicial') : null,
+            ],
+            'oficio' => [
+                'foto' => $this->foto_oficio,
+                'ruta' => $this->foto_oficio ? $this->foto_oficio->store('registropolicial') : null,
+            ],
+            'poder' => [
+                'foto' => $this->foto_poder,
+                'ruta' => $this->foto_poder ? $this->foto_poder->store('registropolicial') : null,
+            ],
+        ];
+
+
+        foreach ($imagenes_recopiladas as $key => $imagen) {
+            if ($imagen['ruta']) {
+                $img = new Imagen();
+                $img->tipo = $key;
+                $img->url = Storage::url($imagen['ruta']);
+                $img->fecha_registro = now()->toDateString();
+                $img->save();
+                $imagenId = $img->id;
+
+                // Guardar la relación entre la imagen y la solicitud (muchos a muchos)
+                $solicitud->imagenes()->attach($imagenId);
+
+                // Asociar la foto de la cédula del solicitante
+                if ($key === 'cedula_solicitante' && isset($personaIds['solicitante'])) {
+                    $solicitante = Persona::find($personaIds['solicitante']);
+                    if ($solicitante) {
+                        $solicitante->imagen_id = $imagenId;
+                        $solicitante->save();
+                    }
+                }
+                // Asociar la foto de la cédula del apoderado
+                if ($key === 'cedula_apoderado' && isset($personaIds['apoderado'])) {
+                    $apoderado = Persona::find($personaIds['apoderado']);
+                    if ($apoderado) {
+                        $apoderado->imagen_id = $imagenId;
+                        $apoderado->save();
+                    }
+                }
             }
+        }
 
+        // Relaciones correctas (NO USAR attach en belongsTo)
+        $registroPolicial = ModelsRegistroPolicial::find($registropolicialId);
+        if ($registroPolicial) {
+            $registroPolicial->solicitud_id = $solicitud->id;
+            $registroPolicial->save();
+        }
 
-            $imagenes_recopiladas = [
-                'foto' => [
-                    'foto' => $this->foto,
-                    'ruta' => $this->foto->store('registropolicial'),
-                ],
-                'cedula_solicitante' => [
-                    'foto' => $this->foto_cedula_apoderado,
-                    'ruta' => $this->foto_cedula_apoderado->store('registropolicial'),
-                ],
-                'cedula_apoderado' => [
-                    'foto' => $this->foto_cedula_solicitante,
-                    'ruta' => $this->foto_cedula_solicitante->store('registropolicial'),
-                ],
-                'oficio' => [
-                    'foto' => $this->foto_oficio,
-                    'ruta' => $this->foto_oficio->store('registropolicial'),
-                ],
-                'poder' => [
-                    'foto' => $this->foto_poder,
-                    'ruta' => $this->foto_poder->store('registropolicial'),
-                ],
-            ];
+        // Relación de solicitud con abogado (si tienes tabla pivote, usa attach, si es belongsTo, solo guarda el id)
+        $solicitud->abogado_funcionario_id = $abogado;
+        $solicitud->save();
 
-
-            foreach ($imagenes_recopiladas as $key => $imagen) {
-                $imagen = new Imagen();
-                $imagen->tipo = $key;
-                $imagen->url = Storage::url($imagen['ruta']);
-                $imagen->fecha_registro = now()->toDateString();
-                $imagen->save();
-                $imagenId = $imagen->id;
-
-                // Guardar la relación entre la imagen y el registro policial
-                ModelsRegistroPolicial::find($registropolicialId)->imagenes()->attach($imagenId);
-            }
-        // Guardar la relación entre la solicitud y el registro policial
-        $solicitud->registrosolicitud()->attach($registrosolicitudId);
-        // Guardar la relación entre la solicitud y el registro policial
-        ModelsRegistroPolicial::find($registropolicialId)->solicitudes()->attach($solicitud->id);
-        // Guardar la relación entre la solicitud y el abogado
-        $solicitud->abogados()->attach($abogado);
-        // Guardar la relación entre la solicitud y el registro policial
-        ModelsRegistroPolicial::find($registropolicialId)->solicitud()->attach($abogado);
-        // Guardar la relación entre la solicitud y el solicitante
-        ModelsRegistroPolicial::find($registropolicialId)->solicitante()->attach($personaIds['solicitante']);
-        // Guardar la relación entre la solicitud y el apoderado
+        // Relación de solicitud con solicitante y apoderado (si es belongsTo, solo guarda el id)
+        $solicitud->solicitante_persona_id = $personaIds['solicitante'];
         if (isset($personaIds['apoderado'])) {
-            ModelsRegistroPolicial::find($registropolicialId)->apoderado()->attach($personaIds['apoderado']);
+            $solicitud->apoderado_persona_id = $personaIds['apoderado'];
         }
-        // Guardar la relación entre la solicitud y el abogado
+        $solicitud->save();
 
-        $foto = $this->foto_cedula_solicitante;
-        $ruta = $foto->store('registropolicial');
-        $imagen = new Imagen();
-        $imagen->tipo ="persona-solicitante";
-        $imagen->url = Storage::url($ruta);
-        $imagen->fecha_registro = now()->toDateString();
-        $imagen->save();
-        $imagen_fotoId = $imagen->id;
-
-
-        $this->dispatch('registroPolicialGuardado', [
-            'solicitud_id' => $solicitud->id,
-            'registro_policial_id' => $registropolicialId,
-        ]);
-
-
-
-
-
-    }
-
-    public function validateCurrentStep()
-{
-
-    if ($this->currentStep == 2) {
-        $this->validate([
-            'nacionalidad' => 'required|in:V,E',
-            'cedula' => 'required|numeric|digits_between:7,8|unique:persona,cedula',
-            'primernombre' => 'required|string|max:50',
-            'segundonombre' => 'nullable|string|max:50',
-            'primerapellido' => 'required|string|max:50',
-            'segundoapellido' => 'nullable|string|max:50',
-            'sexo' => 'required|in:M,F',
-            'telefono' => 'required|regex:/^\d{4}-\d{7}$/',
-            'telefonolocal' => 'nullable|regex:/^\d{4}-\d{7,8}$/',
-            'email' => 'required|email|max:100',
-            'foto' => 'nullable|image|max:1024',
-            'ubicaciones.solicitante.estado' => 'required|integer',
-            'ubicaciones.solicitante.municipio' => 'required|integer',
-            'ubicaciones.solicitante.parroquia' => 'required|integer',
-            'ubicaciones.solicitante.calle' => 'required|string|max:200',
-            'ubicaciones.solicitante.casa_edificio' => 'required|string|max:100',
-            'ubicaciones.solicitante.piso' => 'nullable|string|max:10',
-            'ubicaciones.solicitante.apartamento' => 'nullable|string|max:10',
-        ]);
-            if ($this->showAssigned == 2) {
-                $this->validate([
-                'foto' => 'required|image|max:1024',
-                ]);
-            }
-    }
-
-    if ($this->currentStep == 3) {
-        $this->validate([
-            // Validaciones del apoderado
-            'nacionalidad_apoderado' => 'required|in:V,E',
-            'cedula_apoderado' => 'required|numeric|digits_between:7,8|unique:persona,cedula',
-            'primernombre_apoderado' => 'required|string|max:50',
-            'segundonombre_apoderado' => 'required|string|max:50',
-            'primerapellido_apoderado' => 'required|string|max:50',
-            'segundoapellido_apoderado' => 'required|string|max:50',
-            'sexo_apoderado' => 'required|in:M,F',
-            'telefono_apoderado' => 'required|regex:/^\d{4}-\d{7}$/',
-            'telefonolocal_apoderado' => 'required|regex:/^\d{4}-\d{7,8}$/',
-            'email_apoderado' => 'required|email|max:100',
-            // Dirección apoderado
-            'ubicaciones.apoderado.estado' => 'required|integer|exists:nomencladors,id',
-            'ubicaciones.apoderado.municipio' => 'required|integer|exists:nomencladors,id',
-            'ubicaciones.apoderado.parroquia' => 'required|integer|exists:nomencladors,id',
-            'ubicaciones.apoderado.calle' => 'required|string|max:200',
-            'ubicaciones.apoderado.casa_edificio' => 'required|string|max:100',
-            'ubicaciones.apoderado.piso' => 'required|string|max:10',
-            'ubicaciones.apoderado.apartamento' => 'required|string|max:10',
-        ]);
-        if ($this->showAssigned == 1) {
-            $this->validate([
-                'foto' => 'required|image|max:1024',
-            ]);
-        }
-    }
-
-    if ($this->currentStep == 4) {
-        $this->validate([
-            'juzgado' => 'required|string|max:255',
-            'numero_oficio' => 'required|string|max:50',
-            'fecha_oficio' => 'required|date|before:now',
-            'motivo' => 'required|string|max:255',
-            'delito' => 'required|string|max:255',
-            'numero_expediente_tribunal' => 'required|string|max:100', // <-- Añadido aquí
-            'foto_cedula_solicitante' => 'required|image|max:2048',
-            'foto_oficio' => 'required|image|max:2048',
-        ]);
-        if ($this->showAssigned == 1) {
-            $this->validate([
-            'foto_cedula_apoderado' => 'required|image|max:2048',
-            'foto_poder' => 'required|image|max:2048',
-            ]);
-        }
-    }
-
-    if ($this->currentStep == 5) {
-        $this->validate([
-            'abogado_id' => 'required|exists:users,id',
-        ]);
-    }
-}
-
-    public function render()
-    {
-
-    $guideService = new GuideNumberService();
-        $this->guia = $guideService->generate(
+        // Generar la nueva guía solo para previsualización (no actualiza last_number)
+        $this->guia = (new GuideNumberService())->generate(
             'registro_policial',
             'REGPOL',
             4,
             null,
-            true // Modo previsualización
+            true // Solo previsualización para el siguiente registro
         );
 
-        $abogados = Funcionario::with(['persona', 'user']) // Carga anticipada
-        ->whereHas('user.roles', function ($query) {
-            $query->where('name', 'Abogado'); // Filtra solo abogados
-        })
-        ->get();
-        return view('livewire.registro-policial',
-            [
-                'abogados' => $abogados,
-            ]
-        );
+        return redirect('/menu')->with('success', 'Registro policial creado exitosamente.');
+    }
+
+    public function validateCurrentStep()
+    {
+
+        if ($this->currentStep == 2) {
+            $this->validate([
+                'nacionalidad' => 'required|in:V,E',
+                'cedula' => 'required|numeric|digits_between:7,8|unique:persona,cedula',
+                'primernombre' => 'required|string|max:50',
+                'segundonombre' => 'nullable|string|max:50',
+                'primerapellido' => 'required|string|max:50',
+                'segundoapellido' => 'nullable|string|max:50',
+                'sexo' => 'required|in:M,F',
+                'telefono' => 'required|regex:/^\d{4}-\d{7}$/',
+                'telefonolocal' => 'nullable|regex:/^\d{4}-\d{7,8}$/',
+                'email' => 'required|email|max:100',
+                'foto' => 'nullable|image|max:1024',
+                'ubicaciones.solicitante.estado' => 'required|integer',
+                'ubicaciones.solicitante.municipio' => 'required|integer',
+                'ubicaciones.solicitante.parroquia' => 'required|integer',
+                'ubicaciones.solicitante.calle' => 'required|string|max:200',
+                'ubicaciones.solicitante.casa_edificio' => 'required|string|max:100',
+                'ubicaciones.solicitante.piso' => 'nullable|string|max:10',
+                'ubicaciones.solicitante.apartamento' => 'nullable|string|max:10',
+            ]);
+            if ($this->showAssigned == 2) {
+                $this->validate([
+                    'foto' => 'required|image|max:1024',
+                ]);
+            }
+        }
+
+        if ($this->currentStep == 3) {
+            $this->validate([
+                // Validaciones del apoderado
+                'nacionalidad_apoderado' => 'required|in:V,E',
+                'cedula_apoderado' => 'required|numeric|digits_between:7,8|unique:persona,cedula',
+                'primernombre_apoderado' => 'required|string|max:50',
+                'segundonombre_apoderado' => 'required|string|max:50',
+                'primerapellido_apoderado' => 'required|string|max:50',
+                'segundoapellido_apoderado' => 'required|string|max:50',
+                'sexo_apoderado' => 'required|in:M,F',
+                'telefono_apoderado' => 'required|regex:/^\d{4}-\d{7}$/',
+                'telefonolocal_apoderado' => 'required|regex:/^\d{4}-\d{7,8}$/',
+                'email_apoderado' => 'required|email|max:100',
+                // Dirección apoderado
+                'ubicaciones.apoderado.estado' => 'required|integer|exists:nomencladors,id',
+                'ubicaciones.apoderado.municipio' => 'required|integer|exists:nomencladors,id',
+                'ubicaciones.apoderado.parroquia' => 'required|integer|exists:nomencladors,id',
+                'ubicaciones.apoderado.calle' => 'required|string|max:200',
+                'ubicaciones.apoderado.casa_edificio' => 'required|string|max:100',
+                'ubicaciones.apoderado.piso' => 'required|string|max:10',
+                'ubicaciones.apoderado.apartamento' => 'required|string|max:10',
+            ]);
+            if ($this->showAssigned == 1) {
+                $this->validate([
+                    'foto' => 'required|image|max:1024',
+                ]);
+            }
+        }
+
+        if ($this->currentStep == 4) {
+            $this->validate([
+                'juzgado' => 'required|string|max:255',
+                'numero_oficio' => 'required|string|max:50',
+                'fecha_oficio' => 'required|date|before:now',
+                'motivo' => 'required|string|max:255',
+                'delito' => 'required|string|max:255',
+                'numero_expediente_tribunal' => 'required|string|max:100', // <-- Añadido aquí
+                'foto_cedula_solicitante' => 'required|image|max:2048',
+                'foto_oficio' => 'required|image|max:2048',
+            ]);
+            if ($this->showAssigned == 1) {
+                $this->validate([
+                    'foto_cedula_apoderado' => 'required|image|max:2048',
+                    'foto_poder' => 'required|image|max:2048',
+                ]);
+            }
+        }
+
+        if ($this->currentStep == 5) {
+            $this->validate([
+                'abogado_id' => 'required|exists:users,id',
+            ]);
+        }
+    }
+
+    public function render()
+    {
+        // NO generes la guía aquí, solo retorna la vista y los datos necesarios
+        $abogados = Funcionario::with(['persona', 'user'])
+            ->whereHas('user.roles', function ($query) {
+                $query->where('name', 'Abogado');
+            })
+            ->get();
+
+        return view('livewire.registro-policial', [
+            'abogados' => $abogados,
+            'totalSteps' => $this->totalSteps,
+            'currentStep' => $this->currentStep,
+            'ubicaciones' => $this->ubicaciones,
+        ]);
     }
 }

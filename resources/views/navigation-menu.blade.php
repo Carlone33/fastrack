@@ -17,6 +17,11 @@
                     </x-nav-link> --}}
                     @can('Crear transcripciones')
                     <x-nav-link href="{{ route('solicitudes') }}" :active="request()->routeIs('solicitudes')">
+                        {{ __('Crear Solicitud') }}
+                    </x-nav-link>
+                    @endcan
+                    @can('Ver transcripciones')
+                    <x-nav-link href="{{ route('menu') }}" :active="request()->routeIs('menu')">
                         {{ __('Solicitudes') }}
                     </x-nav-link>
                     @endcan

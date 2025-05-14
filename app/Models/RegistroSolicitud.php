@@ -24,4 +24,9 @@ class RegistroSolicitud extends Model
     {
         return $this->belongsTo(UnidadAdministrativa::class);
     }
+    public function solicitud(): BelongsTo
+    {
+        return $this->belongsTo(Solicitud::class);
+    }
 }
+

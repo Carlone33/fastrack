@@ -7,6 +7,7 @@ use App\Livewire\SolicitudAdministrativa;
 use App\Livewire\Solicitudes;
 use App\Livewire\InterfazAdministrador;
 use App\Livewire\InterfazPermisologia;
+use App\Livewire\InterfazAbogado;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\MultiStepFormTesT;
 /*
@@ -39,5 +40,6 @@ Route::middleware([
     Route::get('/solicitudes', Solicitudes::class)->middleware('can:Crear transcripciones')->name('solicitudes');
     Route::get('/admin', InterfazAdministrador::class)->middleware('can:Ver usuarios')->name('admin');
     Route::get('/permisos', InterfazPermisologia::class)->middleware('can:Ver permisos')->name('permisos');
+    Route::get('/menu', InterfazAbogado::class)->middleware('can:Ver transcripciones')->name('menu');
 
 });

@@ -69,4 +69,9 @@ class Solicitud extends Model
     {
         return $this->belongsToMany(Imagen::class, 'imagen_solicitud');
     }
+    public function registrosolicitud(): HasOne
+    {
+        return $this->hasOne(RegistroSolicitud::class);
+    }
+
 }
