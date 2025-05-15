@@ -45,6 +45,9 @@
 
         @livewire('footer')
         @livewireScripts
-        <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+        @wireUiScripts
+        @wireUiStyles
+        <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js">
+        </script>
     </body>
 </html>

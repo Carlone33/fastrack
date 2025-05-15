@@ -19,6 +19,14 @@ class InterfazAbogado extends Component
     public $rol_usuario = '';
 
 
+    public $modalOpen = false;
+    public $editando = false;
+    public $registro = [
+        'guia' => '',
+        // agrega aquí los campos necesarios
+    ];
+
+
     public function mount()
     {
         $this->rol_usuario = auth()->user()->roles->pluck('name')->first() ?? '';
@@ -71,5 +79,47 @@ class InterfazAbogado extends Component
             'registrosPoliciales' => $registrosPoliciales,
             'tipo_funcionario' => $this->tipo_funcionario,
         ]);
+    }
+
+    public function abrirModalCrear()
+    {
+        $this->editando = false;
+        $this->registro = [
+            'guia' => '',
+            // inicializa los campos
+        ];
+        $this->modalOpen = true;
+    }
+
+    public function abrirModalEditar($id)
+    {
+        $registro = \App\Models\RegistroPolicial::findOrFail($id);
+        $this->registro = $registro->toArray();
+        $this->editando = true;
+        $this->modalOpen = true;
+    }
+
+    public function guardar()
+    {
+        $this->validate([
+            'registro.guia' => 'required|string|max:255',
+            // valida los demás campos
+        ]);
+
+        if ($this->editando) {
+            \App\Models\RegistroPolicial::find($this->registro['id'])->update($this->registro);
+            session()->flash('message', 'Registro actualizado correctamente.');
+        } else {
+            \App\Models\RegistroPolicial::create($this->registro);
+            session()->flash('message', 'Registro creado correctamente.');
+        }
+
+        $this->modalOpen = false;
+    }
+
+    public function eliminar($id)
+    {
+        \App\Models\RegistroPolicial::find($id)->delete();
+        session()->flash('message', 'Registro eliminado correctamente.');
     }
 }

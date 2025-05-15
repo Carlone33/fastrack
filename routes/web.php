@@ -10,6 +10,7 @@ use App\Livewire\InterfazPermisologia;
 use App\Livewire\InterfazAbogado;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\MultiStepFormTesT;
+use App\Http\Controllers\AbogadoController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -41,5 +42,6 @@ Route::middleware([
     Route::get('/admin', InterfazAdministrador::class)->middleware('can:Ver usuarios')->name('admin');
     Route::get('/permisos', InterfazPermisologia::class)->middleware('can:Ver permisos')->name('permisos');
     Route::get('/menu', InterfazAbogado::class)->middleware('can:Ver transcripciones')->name('menu');
+    Route::get('/buscar-abogados', [AbogadoController::class, 'buscar'])->name('buscar.abogados');
 
 });

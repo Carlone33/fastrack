@@ -609,12 +609,15 @@ class RegistroPolicial extends Component
 
     public function render()
     {
-        // NO generes la guía aquí, solo retorna la vista y los datos necesarios
         $abogados = Funcionario::with(['persona', 'user'])
-            ->whereHas('user.roles', function ($query) {
-                $query->where('name', 'Abogado');
+            ->whereHas('persona', function ($query) {
+            $query->where('primer_nombre', 'like', '%' . $this->searchAbogado . '%')
+                ->orWhere('primer_apellido', 'like', '%' . $this->searchAbogado . '%')
+                ->orWhere('cedula', 'like', '%' . $this->searchAbogado . '%');
             })
             ->get();
+
+        // Si la consulta no retorna nada, $abogados será una colección vacía, no null
 
         return view('livewire.registro-policial', [
             'abogados' => $abogados,

@@ -748,53 +748,24 @@
 
                             @if ($currentStep === 5)
                                 <h3 class="text-center col-span-3 text-lg">Selección del abogado</h3>
-
-                                <div x-data="abogadoSelector()" class="col-span-3 relative">
-                                    <!-- Input combinado -->
-                                    <input x-model="search" @focus="open = true; search = ''"
-                                        :value="open ? search : selectedText" placeholder="Buscar abogado..."
-                                        class="w-full p-2 border rounded" @keydown.escape="open = false">
-
-                                    <!-- Opciones -->
-                                    <div x-show="open"
-                                        class="relative overflow-visible w-full bg-white border shadow-lg max-h-60 overflow-auto">
-                                        <template x-for="a in filtered">
-                                            <div @click="selectAbogado(a)"
-                                                class="p-2 hover:bg-gray-100 cursor-pointer"
-                                                :class="{ 'bg-blue-50': a.id == selected }" x-text="a.text"></div>
-                                        </template>
-                                    </div>
-
-                                    <input type="hidden" x-model="selected" wire:model="abogado_id">
+                                <div class="col-span-3 mb-52"><!-- Aquí agregas mb-10 o el valor que prefieras -->
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        Selecciona un abogado
+                                    </label>
+                                    <x-select
+                                        placeholder="Escribe para buscar"
+                                        wire:model="abogado_id"
+                                        :async-data="route('buscar.abogados')"
+                                        option-label="nombre_completo"
+                                        option-value="id"
+                                        :searchable="true"
+                                    />
+                                    @error('abogado_id')
+                                        <span class="text-red-500 text-xs mt-3 block">{{ $message }}</span>
+                                    @enderror
                                 </div>
                             @endif
 
-                            <script>
-                                function abogadoSelector() {
-                                    return {
-                                        search: '',
-                                        open: false,
-                                        selected: @entangle('abogado_id'),
-                                        selectedText: 'Seleccione abogado...',
-                                        abogadosList: @json($abogados->map(fn($a) => ['id' => $a->user->id, 'text' => "{$a->persona->primer_nombre} {$a->persona->primer_apellido}"])),
-                                        init() {
-                                            if (this.selected) {
-                                                const abogado = this.abogadosList.find(a => a.id == this.selected);
-                                                if (abogado) this.selectedText = abogado.text;
-                                            }
-                                        },
-                                        get filtered() {
-                                            return this.abogadosList.filter(a => a.text.toLowerCase().includes(this.search.toLowerCase()));
-                                        },
-                                        selectAbogado(abogado) {
-                                            this.selected = abogado.id;
-                                            this.selectedText = abogado.text;
-                                            this.open = false;
-                                            this.search = '';
-                                        }
-                                    };
-                                }
-                            </script>
                         </div>
 
 
