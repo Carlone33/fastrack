@@ -22,8 +22,13 @@ return new class extends Migration
             $table->boolean('bloqueado')->default(false);
             $table->timestamp('fecha_ultimo_cambio_contrasena')->useCurrent();
             $table->string('observaciones')->nullable();
+            $table->string('pregunta_1')->nullable();
+            $table->string('respuesta_1')->nullable();
+            $table->string('pregunta_2')->nullable();
+            $table->string('respuesta_2')->nullable();
+            $table->string('pregunta_3')->nullable();
+            $table->string('respuesta_3')->nullable();
             $table->timestamps();
-            
             $table->foreign('funcionario_id')->references('id')->on('funcionario')->onDelete('cascade');
         });
     }

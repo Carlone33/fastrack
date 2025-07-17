@@ -21,6 +21,7 @@ class Solicitud extends Model
         'solicitante_persona_id',
         'fecha_solicitud',
         'hora_solicitud',
+        'estado_solicitud',
         'apoderado_persona_id',
         'abogado_funcionario_id'
     ];

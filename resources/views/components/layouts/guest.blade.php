@@ -16,6 +16,7 @@
 
         <!-- Styles -->
         @livewireStyles
+        @wireUiStyles
     </head>
     <body>
         <div class="font-sans text-gray-900 antialiased">
@@ -23,5 +24,7 @@
         </div>
 
         @livewireScripts
+        @wireUiScripts
+
     </body>
 </html>

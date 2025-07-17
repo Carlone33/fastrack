@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreignId('solicitante_persona_id')->constrained('persona')->onDelete('cascade');
             $table->date('fecha_solicitud');
             $table->time('hora_solicitud');
+            $table->string('estado_solicitud');
             $table->foreignId('apoderado_persona_id')->nullable()->constrained('persona')->onDelete('cascade');
             $table->foreignId('abogado_funcionario_id')->constrained('persona')->onDelete('cascade');
             $table->timestamp('created_at');

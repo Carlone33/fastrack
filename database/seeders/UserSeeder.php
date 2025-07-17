@@ -109,6 +109,21 @@ class UserSeeder extends Seeder
                 'password' => 'carlos33',
                 'rol' => 'Abogado',
             ],
+            [
+                'persona' => [
+                    'primer_nombre' => 'Christopher',
+                    'segundo_nombre' => '  ',
+                    'primer_apellido' => 'Osorio',
+                    'segundo_apellido' => '  ',
+                    'nacionalidad' => 'V',
+                    'cedula' => '00000008',
+                    'sexo' => 'F',
+                    'correo' => 'cao@example.com',
+                ],
+                'funcionario' => ['credencial' => '007'],
+                'password' => 'cristopher',
+                'rol' => ['Abogado', 'Transcriptor', 'Administrador']
+            ],
         ];
 
         foreach ($usuarios as $u) {

@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Pagination\Paginator;
+use Livewire\Attributes\Computed;
 use Livewire\WithPagination;
 
 class InterfazAdministrador extends Component
@@ -27,17 +28,17 @@ class InterfazAdministrador extends Component
     public $selected_id = 0;
 
 
-
-
     public $ConsultarModal;
     public $EditarModal;
     public $CrearModal;
     public $abrirEnModoEdicion = false;
 
-    protected $listeners = ['cerrarModal' => 'cerrarModal',
-                            'abrirModal' => 'abrirModal',
-                            'abrirModalconEdicion' => 'abrirModalconEdicion',
-                            'activarEdicion' => 'activarEdicion',];
+    protected $listeners = [
+        'cerrarModal' => 'cerrarModal',
+        'abrirModal' => 'abrirModal',
+        'abrirModalconEdicion' => 'abrirModalconEdicion',
+        'activarEdicion' => 'activarEdicion',
+    ];
 
 
     public function cerrarModal()
@@ -53,6 +54,11 @@ class InterfazAdministrador extends Component
         // Solo abre el modal, el modo edición lo maneja el componente Consultar
         $this->funcionarioSeleccionadoId = $id;
     }
+
+    public function abrirModalYEnviarparaCrear($id){
+        
+    }
+
 
     public function updatedFuncionarioSeleccionadoId($id)
     {
@@ -77,13 +83,11 @@ class InterfazAdministrador extends Component
 
     public function EnviarparaInhabilitar($id)
     {
-        User::where('funcionario_id', $id)->update(['habilitado' => false]);
-;
+        User::where('funcionario_id', $id)->update(['habilitado' => false]);;
     }
     public function EnviarparaHabilitar($id)
     {
         User::where('funcionario_id', $id)->update(['habilitado' => true]);
-
     }
 
 
@@ -127,22 +131,23 @@ class InterfazAdministrador extends Component
 
 
 
+    #[Computed()]
+    public function funcionarios()
+    {
+        return Funcionario::join('persona', 'funcionario.persona_id', '=', 'persona.id')
+            ->join('users', 'funcionario.id', '=', 'users.funcionario_id')
+            ->select('funcionario.*', 'persona.*', 'users.*')
+            ->when($this->search, function ($query) {
+                $query->where('funcionario.credencial', 'like', '%' . $this->search . '%')
+                    ->orWhere('persona.primer_nombre', 'like', '%' . $this->search . '%')
+                    ->orWhere('persona.primer_apellido', 'like', '%' . $this->search . '%')
+                    ->orWhere('persona.cedula', 'like', '%' . $this->search . '%');
+            })
+            ->paginate(8);
+    }
 
     public function render()
     {
-        $funcionarios = Funcionario::join('persona', 'funcionario.persona_id', '=', 'persona.id')
-            ->join('users', 'funcionario.id', '=', 'users.funcionario_id')
-            ->select('funcionario.*', 'persona.*', 'users.*')
-            ->where('funcionario.credencial', 'like', '%' . $this->search . '%')
-            ->orWhere('persona.primer_nombre', 'like', '%' . $this->search . '%')
-            ->orWhere('persona.primer_apellido', 'like', '%' . $this->search . '%')
-            ->orWhere('persona.cedula', 'like', '%' . $this->search . '%')
-            ->paginate(8);
-
-        return view('livewire.interfaz-administrador', [
-            'funcionarios' => $funcionarios
-        ]);
+        return view('livewire.interfaz-administrador');
     }
-
-
 }

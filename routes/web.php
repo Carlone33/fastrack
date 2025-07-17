@@ -11,6 +11,9 @@ use App\Livewire\InterfazAbogado;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\MultiStepFormTesT;
 use App\Http\Controllers\AbogadoController;
+use App\Http\Controllers\PreguntasController;
+use App\Livewire\EstablecerPreguntas;
+use App\Livewire\Inicio;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -34,6 +37,9 @@ Route::middleware([
     Route::get('/inicio', function () {
         return view('inicio');
     })->name('inicio');
+
+    Route::get('/inicio', Inicio::class)->name('inicio');
+
     // Route::get('/solicitud-administrativa', SolicitudAdministrativa::class)->name('solicitud-administrativa');
     Route::get('/registro-unico', RegistroUnico::class)->name('registro-unico');
     // Route::get('/dictamen', Dictamen::class)->name('dictamen');
@@ -45,3 +51,7 @@ Route::middleware([
     Route::get('/buscar-abogados', [AbogadoController::class, 'buscar'])->name('buscar.abogados');
 
 });
+Route::get('/establecer-preguntas', EstablecerPreguntas::class)->name('establecer.preguntas');
+Route::post('/verificar-preguntas', [App\Http\Controllers\Auth\PreguntaSeguridadController::class, 'verificar'])->name('preguntas.verificar');
+Route::post('/destroy-session', [App\Http\Controllers\DestroySessionController::class, 'destroy'])->name('destroy.session');
+Route::get('/preguntas-json', [App\Http\Controllers\PreguntasController::class, 'json'])->name('preguntas.json');

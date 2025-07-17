@@ -16,17 +16,17 @@ use App\Models\User;
 class JetstreamServiceProvider extends ServiceProvider
 {
 
-// /**
-//  * Debido a un bug de Fortify::authenticateUsing que resulta en una
-// doble ejecucion de la autenticacion
-//  * se creo una variable que diferencie el primer llamado del
-// segundo para ejecutar el registro de la traza.
-//  * Para Abril del 2024 fue categorizado como un error sin arreglo
-// por el equipo de Laravel por la naturaleza
-//  * inofensiva del error y su alto potencial de generar errores en
-// caso de arreglarlo.
-//  */
-protected $isFirstCall = true;
+    // /**
+    //  * Debido a un bug de Fortify::authenticateUsing que resulta en una
+    // doble ejecucion de la autenticacion
+    //  * se creo una variable que diferencie el primer llamado del
+    // segundo para ejecutar el registro de la traza.
+    //  * Para Abril del 2024 fue categorizado como un error sin arreglo
+    // por el equipo de Laravel por la naturaleza
+    //  * inofensiva del error y su alto potencial de generar errores en
+    // caso de arreglarlo.
+    //  */
+    protected $isFirstCall = true;
 
 
     /**
@@ -77,7 +77,20 @@ protected $isFirstCall = true;
                                     $historialSesion->login = now();
                                     $historialSesion->save();
                                 }
-                                return $user;
+
+                                $user->intentos_fallidos = 0;
+                                $id = $user->id;
+                                $user->save();
+                                if (is_null($user->pregunta_1)) {
+                                    session()->put('question1', $id);
+                                    return null;
+                                } else {
+                                    session()->put('user_id', $id);
+                                    $rifa=['pregunta_1' => $user->pregunta_1, 'pregunta_2' => $user->pregunta_2, 'pregunta_3' => $user->pregunta_3];
+                                    session()->put('rifa', $rifa);
+                                    return null;
+                                }
+
                             } else {
                                 $errores[] = 'Ya existe una sesión activa.';
                             }

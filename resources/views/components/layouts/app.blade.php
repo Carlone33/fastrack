@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
+
         <title>{{ config('app.name', 'SIAL') }}</title>
 
         <!-- Fonts -->
@@ -17,6 +18,8 @@
 
         <!-- Styles -->
         @livewireStyles
+        @wireUiStyles
+
     </head>
     <body class="font-sans antialiased">
         <x-banner />
@@ -46,7 +49,6 @@
         @livewire('footer')
         @livewireScripts
         @wireUiScripts
-        @wireUiStyles
         <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js">
         </script>
     </body>

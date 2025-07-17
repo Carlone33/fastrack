@@ -16,6 +16,8 @@
         "vite": "^6.3.3"
     },
     "dependencies": {
+        "@wireui/alpinejs-hold-directive": "^1.0.3",
+        "alpinejs": "^3.13.2",
         "tom-select": "^2.4.3",
         "venezuela": "^1.1.7"
     }

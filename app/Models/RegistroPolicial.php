@@ -17,6 +17,7 @@ class RegistroPolicial extends Model
         'guia',
         'numero_oficio',
         'fecha_oficio',
+        'estado_solicitud',
         'nombre_tribunal',
         'numero_expediente_tribunal',
         'motivo',

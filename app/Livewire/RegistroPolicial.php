@@ -28,6 +28,7 @@ class RegistroPolicial extends Component
     public $search = '';
     public $abogado_id;
     public $searchAbogado = '';
+    public $abogados = [];
 
     // Propiedades para los campos del formulario
     public $guia, $foto, $foto_cedula_solicitante, $foto_cedula_apoderado, $foto_poder, $foto_oficio, $juzgado, $numero_oficio, $fecha_oficio, $motivo, $delito, $numero_expediente_tribunal;
@@ -217,7 +218,25 @@ class RegistroPolicial extends Component
             $this->ubicaciones[$tipo]['municipios'] = collect();
             $this->ubicaciones[$tipo]['parroquias'] = collect();
         }
+
+        $abogados = Funcionario::with(['persona', 'user'])
+            ->whereHas('persona', function ($query) {
+            $query->where('primer_nombre', 'like', '%' . $this->searchAbogado . '%')
+                ->orWhere('primer_apellido', 'like', '%' . $this->searchAbogado . '%')
+                ->orWhere('cedula', 'like', '%' . $this->searchAbogado . '%');
+            })
+            ->get();
+
+            foreach ($abogados as $abogado) {
+                $this->abogados[] = [
+                    'id' => $abogado->id,
+                    'nombre' => $abogado->persona->primer_nombre . ' ' . $abogado->persona->primer_apellido,
+                    'cedula' => $abogado->persona->cedula,
+                ];
+            }
     }
+
+
     public function updated($property, $value)
     {
         foreach (['solicitante', 'apoderado'] as $tipo) {
@@ -416,6 +435,7 @@ class RegistroPolicial extends Component
         $solicitud = Solicitud::create([
             'tipo_solicitud' => 'REGISTRO POLICIAL',
             'fecha_registro' => now(),
+            'estado_solicitud' => 'En Proceso',
             'registrador_funcionario_id' => auth()->user()->funcionario->id,
             'solicitante_persona_id' => $personaIds['solicitante'],
             'apoderado_persona_id' => $personaIds['apoderado'] ?? null,
@@ -609,18 +629,11 @@ class RegistroPolicial extends Component
 
     public function render()
     {
-        $abogados = Funcionario::with(['persona', 'user'])
-            ->whereHas('persona', function ($query) {
-            $query->where('primer_nombre', 'like', '%' . $this->searchAbogado . '%')
-                ->orWhere('primer_apellido', 'like', '%' . $this->searchAbogado . '%')
-                ->orWhere('cedula', 'like', '%' . $this->searchAbogado . '%');
-            })
-            ->get();
+
 
         // Si la consulta no retorna nada, $abogados será una colección vacía, no null
 
         return view('livewire.registro-policial', [
-            'abogados' => $abogados,
             'totalSteps' => $this->totalSteps,
             'currentStep' => $this->currentStep,
             'ubicaciones' => $this->ubicaciones,

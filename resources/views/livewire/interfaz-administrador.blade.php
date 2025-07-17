@@ -35,7 +35,7 @@
                     </thead>
 
                     <tbody>
-                        @foreach ($funcionarios as $funcionario)
+                        @foreach ($this->funcionarios as $funcionario)
                             @if ($funcionario->eliminado == false)
                                 <tr class="h-10">
                                     <td class="border border-b-gray-300 border-t-gray-300">
@@ -101,7 +101,7 @@
                     </tbody>
                 </table>
             </div>
-            {{ $funcionarios->links() }}
+            {{ $this->funcionarios->links() }}
         </span>
 
 
