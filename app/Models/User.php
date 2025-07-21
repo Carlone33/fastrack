@@ -28,7 +28,17 @@ class User extends Authenticatable
         'funcionario_id',
         'password',
         'habilitado',
-        'intentos_fallidos'
+        'intentos_fallidos',
+        'eliminado',
+        'bloqueado',
+        'fecha_ultimo_cambio_contrasena',
+        'observaciones',
+        'pregunta_1',
+        'respuesta_1',
+        'pregunta_2',
+        'respuesta_2',
+        'pregunta_3',
+        'respuesta_3',
     ];
 
     /**

@@ -1,8 +1,5 @@
 <?php
-
 namespace App\Livewire;
-
-
 use Livewire\WithFileUploads;
 use Livewire\Component;
 use App\Models\Nomenclador;

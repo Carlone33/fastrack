@@ -14,6 +14,8 @@ use App\Http\Controllers\AbogadoController;
 use App\Http\Controllers\PreguntasController;
 use App\Livewire\EstablecerPreguntas;
 use App\Livewire\Inicio;
+use App\Livewire\Administrador\Consultar;
+use App\Livewire\Administrador\Crear;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -49,6 +51,10 @@ Route::middleware([
     Route::get('/permisos', InterfazPermisologia::class)->middleware('can:Ver permisos')->name('permisos');
     Route::get('/menu', InterfazAbogado::class)->middleware('can:Ver transcripciones')->name('menu');
     Route::get('/buscar-abogados', [AbogadoController::class, 'buscar'])->name('buscar.abogados');
+
+    // Ruta para consultar/editar/crear funcionario en vista compartida
+    Route::get('/funcionarios/{id}/consultar', Consultar::class)->middleware('can:Ver usuarios')->name('funcionarios.consultar');
+    Route::get('/funcionarios/crear', Crear::class)->middleware('can:Crear usuarios')->name('funcionarios.crear');
 
 });
 Route::get('/establecer-preguntas', EstablecerPreguntas::class)->name('establecer.preguntas');

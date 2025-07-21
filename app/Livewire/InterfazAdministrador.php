@@ -47,16 +47,17 @@ class InterfazAdministrador extends Component
     }
     public function abrirModal($id)
     {
-        $this->funcionarioSeleccionadoId = $id;
+        return redirect()->route('funcionarios.consultar', ['id' => $id, 'modo' => 'consultar']);
     }
     public function abrirModalconEdicion($id)
     {
-        // Solo abre el modal, el modo edición lo maneja el componente Consultar
-        $this->funcionarioSeleccionadoId = $id;
+        // Redirige a la vista compartida en modo edición
+        return redirect()->route('funcionarios.consultar', ['id' => $id, 'modo' => 'editar']);
     }
 
-    public function abrirModalYEnviarparaCrear($id){
-        
+    public function abrirModalYEnviarparaCrear(){
+        // Redirige a la vista de crear funcionario sin id
+        return redirect()->route('funcionarios.crear');
     }
 
 

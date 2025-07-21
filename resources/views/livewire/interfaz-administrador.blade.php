@@ -48,14 +48,14 @@
                                     </td>
                                     <td class="w-24 border border-b-gray-300 border-t-gray-300">
                                         @can('Ver usuarios')
-                                            <button wire:click="abrirModalInline({{ $funcionario->id }})">
+                                            <button onclick="window.location.href='{{ route('funcionarios.consultar', ['id' => $funcionario->id, 'modo' => 'consultar']) }}'">
                                                 <x-icons.consulta />
                                             </button>
                                         @endcan
                                     </td>
                                     <td class="w-24 border border-b-gray-300 border-t-gray-300">
                                         @can('Editar usuarios')
-                                            <button wire:click="abrirModalInlineOrEditar({{ $funcionario->id }})">
+                                            <button onclick="window.location.href='{{ route('funcionarios.consultar', ['id' => $funcionario->id, 'modo' => 'editar']) }}'">
                                                 <x-icons.editar />
                                             </button>
                                         @endcan
@@ -67,35 +67,14 @@
                                                     <x-icons.habilitar />
                                                 </button>
                                             @else
-                                                <button wire:click="EnviarparaHabilitar({{ $funcionario->id }})">
+                                                <button wire:click="EnviarparaHabilitar({{ $funcionario->id }})" >
                                                     <x-icons.inhabilitar />
                                                 </button>
                                             @endif
                                         @endcan
                                     </td>
                                 </tr>
-                                @if($funcionarioSeleccionadoId === $funcionario->id)
-                                    <tr>
-                                        <td colspan="6">
-                                            <div class="bg-white rounded p-6 my-2">
-                                                @livewire('administrador.consultar', ['funcionario' => $funcionario->toArray(), 'abrirEnModoEdicion' => $abrirEnModoEdicion])
-
-                                                @if($abrirEnModoEdicion == false)
-                                                <button wire:click="abrirModalInline({{ $funcionario->id }})" class=" border mt-4 bg-white border-slate-800  px-4 py-2 rounded">
-                                                    Cerrar Modal
-                                                </button>
-                                                @else
-                                                <button wire:click="abrirModalInlineOrEditar({{ $funcionario->id }})" class=" border mt-4 bg-white border-slate-800  px-4 py-2 rounded">
-                                                    Cerrar Edición
-                                                </button>
-                                                <button wire:click="abrirModalInlineOrEditar({{ $funcionario->id }})" class="  mt-4 bg-blue-500 text-white px-4 py-2 rounded">
-                                                    Editar
-                                                </button>
-                                                @endif
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endif
+                                {{-- Ya no se muestra el modal inline, ahora se navega a la vista compartida --}}
                             @endif
                         @endforeach
                     </tbody>
