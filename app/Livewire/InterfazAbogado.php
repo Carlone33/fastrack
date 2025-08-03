@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Livewire;
 
 use App\Models\Solicitud;
@@ -8,10 +7,11 @@ use App\Models\RegistroUnico;
 use App\Models\SolicitudAdministrativa;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class InterfazAbogado extends Component
 {
-
+    use WithPagination;
 
     public $search = '';
 
@@ -29,17 +29,45 @@ class InterfazAbogado extends Component
 
     public $tipoSolicitud = '';
 
-    public function abrirModal($id)
+    public function abrirModal($id, $tipo = null)
     {
         $this->selected_id = $id;
         $this->modalOpen = true;
 
-        $this->registroSeleccionado = RegistroPolicial::with([
-            'solicitud',
-            'solicitud.solicitante',
-            'solicitud.apoderado',
-            'solicitud.abogado'
-        ])->find($id);
+        // Set tipoSolicitud if provided (for correct modal fields and button logic)
+        if ($tipo) {
+            $this->tipoSolicitud = $tipo;
+        }
+
+        // Load the correct model based on tipo
+        if ($tipo === 'RegistroPolicial') {
+            $this->registroSeleccionado = RegistroPolicial::with([
+                'solicitud',
+                'solicitud.solicitante',
+                'solicitud.apoderado',
+                'solicitud.abogado'
+            ])->find($id);
+        } elseif ($tipo === 'Administrativa') {
+            $this->registroSeleccionado = \App\Models\SolicitudAdministrativa::with([
+                'solicitud',
+                'solicitud.solicitante',
+                'solicitud.apoderado',
+                'solicitud.abogado',
+                'solicitud.registroSolicitud',
+            ])->find($id);
+        } elseif ($tipo === 'RegistroUnico') {
+            $this->registroSeleccionado = \App\Models\RegistroUnico::with([
+                // relaciones necesarias
+            ])->find($id);
+        } else {
+            // Default fallback
+            $this->registroSeleccionado = RegistroPolicial::with([
+                'solicitud',
+                'solicitud.solicitante',
+                'solicitud.apoderado',
+                'solicitud.abogado'
+            ])->find($id);
+        }
     }
 
     public function mount()
@@ -87,10 +115,11 @@ class InterfazAbogado extends Component
 
         if ($this->tipoSolicitud === 'Administrativa') {
             return SolicitudAdministrativa::with([
-                'solicitante',
-                'apoderado',
-                'abogado',
-                'registroSolicitud',
+                'solicitud',
+                'solicitud.solicitante',
+                'solicitud.apoderado',
+                'solicitud.abogado',
+                'solicitud.registroSolicitud',
             ])
                 ->orderBy('created_at', 'desc')
                 ->paginate(8);
@@ -104,24 +133,113 @@ class InterfazAbogado extends Component
                 ->paginate(8);
         }
 
-        // Si no hay filtro, muestra todos juntos (puedes dejar solo uno si prefieres)
-        // Aquí puedes concatenar y paginar manualmente si lo necesitas
-        return RegistroPolicial::with([
+        // Si no hay filtro, muestra todos juntos (concatenado y paginado manualmente)
+
+        $registrosPoliciales = RegistroPolicial::with([
             'solicitud',
             'solicitud.solicitante',
             'solicitud.apoderado',
             'solicitud.abogado',
             'solicitud.registroSolicitud',
-        ])
-            ->orderBy('created_at', 'desc')
-            ->paginate(8);
+        ])->get()->map(function($item) {
+            $item->tipo = 'RegistroPolicial';
+            return $item;
+        });
+
+        $solicitudesAdministrativas = SolicitudAdministrativa::with([
+            'solicitud',
+            'solicitud.solicitante',
+            'solicitud.apoderado',
+            'solicitud.abogado',
+            'solicitud.registroSolicitud',
+        ])->get()->map(function($item) {
+            $item->tipo = 'Administrativa';
+            return $item;
+        });
+
+        // Puedes agregar aquí otros tipos si lo deseas
+
+        $all = $registrosPoliciales->concat($solicitudesAdministrativas);
+        $all = $all->sortByDesc(function($item) {
+            return $item->created_at;
+        });
+
+        // Paginación manual
+        $page = request()->get('page', 1);
+        $perPage = 8;
+        $items = $all->slice(($page - 1) * $perPage, $perPage)->values();
+        $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+            $items,
+            $all->count(),
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+        return $paginator;
+    }
+
+
+        public function verHistorial($solicitudId)
+    {
+        return redirect()->route('solicitud.movimientos', ['solicitud' => $solicitudId]);
+    }
+
+
+    public function cambiarEstadoRegistroPolicial() {
+        if (!$this->registroSeleccionado) return;
+
+        $registro = $this->registroSeleccionado;
+        $estadoAnterior = $registro->solicitud->estado_solicitud ?? 'Desconocido';
+        $estadoNuevo = 'Revisado por abogado';
+
+        // Cambia el estado en la solicitud
+        $registro->solicitud->estado_solicitud = $estadoNuevo;
+        $registro->solicitud->save();
+
+        // Registra el movimiento
+        \App\Models\MovimientosSolicitud::create([
+            'solicitud_id' => $registro->solicitud->id,
+            'usuario_id' => auth()->id(),
+            'estado_anterior' => $estadoAnterior,
+            'estado_nuevo' => $estadoNuevo,
+            'descripcion' => $registro->observaciones_abogado ?? null,
+        ]);
+
+        // Refresca el modal
+        $this->abrirModal($registro->id);
+        session()->flash('message', 'Estado actualizado y movimiento registrado.');
+    }
+
+
+    public function cambiarEstadoRegistroPolicialDesdeTabla($id)
+    {
+        $registro = \App\Models\RegistroPolicial::with('solicitud')->find($id);
+        if (!$registro || !$registro->solicitud) return;
+
+        $estadoAnterior = $registro->solicitud->estado_solicitud ?? 'Desconocido';
+        $estadoNuevo = 'Revisado por abogado';
+
+        $registro->solicitud->estado_solicitud = $estadoNuevo;
+        $registro->solicitud->save();
+
+        \App\Models\MovimientosSolicitud::create([
+            'solicitud_id' => $registro->solicitud->id,
+            'usuario_id' => auth()->id(),
+            'estado_anterior' => $estadoAnterior,
+            'estado_nuevo' => $estadoNuevo,
+            'descripcion' => 'Cambio de estado desde la tabla principal',
+        ]);
+
+        // Refresca la tabla
+        $this->resetPage();
+        $this->dispatch('estadoCambiado');
     }
 
     public function render()
     {
         return view('livewire.interfaz-abogado', [
             'tipo_funcionario' => $this->tipo_funcionario,
-            'resultados' => $this->resultados, // <-- agrega esto
+            'resultados' => $this->resultados(),
         ]);
     }
 }

@@ -27,4 +27,10 @@ class SolicitudAdministrativa extends Model
     {
         return $this->hasOne(Dictamen::class);
     }
+
+    // Acceso directo al solicitante a través de la solicitud
+    public function solicitante()
+    {
+        return $this->solicitud ? $this->solicitud->solicitante() : null;
+    }
 }

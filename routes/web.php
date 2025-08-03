@@ -1,4 +1,7 @@
+
 <?php
+// Ruta para cambiar estado de solicitudes administrativas y registro único
+
 
 use App\Livewire\Dictamen;
 use App\Livewire\RegistroPolicial;
@@ -16,6 +19,8 @@ use App\Livewire\EstablecerPreguntas;
 use App\Livewire\Inicio;
 use App\Livewire\Administrador\Consultar;
 use App\Livewire\Administrador\Crear;
+use App\Livewire\MovimientosSolicitud;
+use App\Http\Controllers\CambiarEstadoController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -56,7 +61,21 @@ Route::middleware([
     Route::get('/funcionarios/{id}/consultar', Consultar::class)->middleware('can:Ver usuarios')->name('funcionarios.consultar');
     Route::get('/funcionarios/crear', Crear::class)->middleware('can:Crear usuarios')->name('funcionarios.crear');
 
+    Route::get('/solicitud/{solicitud}/movimientos', MovimientosSolicitud::class)
+    //->middleware('can:Ver movimientos solicitud')
+    ->name('solicitud.movimientos');
+    // (Ruta movida fuera del grupo de middleware)
+    Route::get('/registro-policial/{registroId}/cambiar-estado', \App\Livewire\CambiarEstadoSolicitud::class)
+        ->name('registro-policial.cambiar-estado-form');
+    Route::aliasMiddleware('registro-policial.cambiar-estado', 'registro-policial.cambiar-estado-form');
+
+    Route::get('/solicitud-generica/{solicitud}/cambiar-estado', App\Livewire\CambiarEstadoSolicitudGenerica::class)
+    ->name('solicitud-generica.cambiar-estado-form');
+
 });
+
+    // Ruta POST para cambiar estado SOLO con autenticación
+
 Route::get('/establecer-preguntas', EstablecerPreguntas::class)->name('establecer.preguntas');
 Route::post('/verificar-preguntas', [App\Http\Controllers\Auth\PreguntaSeguridadController::class, 'verificar'])->name('preguntas.verificar');
 Route::post('/destroy-session', [App\Http\Controllers\DestroySessionController::class, 'destroy'])->name('destroy.session');

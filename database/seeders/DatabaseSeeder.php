@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             NomencladorGeograficoSeeder::class,
             UnidadesAdministrativasSeeder::class,
             TestSeeder::class,
+            SolicitudAdministrativaSeeder::class,
         ]);
     }
 }
