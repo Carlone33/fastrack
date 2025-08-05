@@ -29,45 +29,11 @@ class InterfazAbogado extends Component
 
     public $tipoSolicitud = '';
 
-    public function abrirModal($id, $tipo = null)
+
+    public function verDetalles($id, $tipo = null)
     {
-        $this->selected_id = $id;
-        $this->modalOpen = true;
-
-        // Set tipoSolicitud if provided (for correct modal fields and button logic)
-        if ($tipo) {
-            $this->tipoSolicitud = $tipo;
-        }
-
-        // Load the correct model based on tipo
-        if ($tipo === 'RegistroPolicial') {
-            $this->registroSeleccionado = RegistroPolicial::with([
-                'solicitud',
-                'solicitud.solicitante',
-                'solicitud.apoderado',
-                'solicitud.abogado'
-            ])->find($id);
-        } elseif ($tipo === 'Administrativa') {
-            $this->registroSeleccionado = \App\Models\SolicitudAdministrativa::with([
-                'solicitud',
-                'solicitud.solicitante',
-                'solicitud.apoderado',
-                'solicitud.abogado',
-                'solicitud.registroSolicitud',
-            ])->find($id);
-        } elseif ($tipo === 'RegistroUnico') {
-            $this->registroSeleccionado = \App\Models\RegistroUnico::with([
-                // relaciones necesarias
-            ])->find($id);
-        } else {
-            // Default fallback
-            $this->registroSeleccionado = RegistroPolicial::with([
-                'solicitud',
-                'solicitud.solicitante',
-                'solicitud.apoderado',
-                'solicitud.abogado'
-            ])->find($id);
-        }
+        // Redirige a la ruta de detalles con el id y tipo
+        return redirect()->route('solicitudes.detalle.full', ['id' => $id, 'tipo' => $tipo ?? $this->tipoSolicitud, 'funcionario' => $this->tipo_funcionario]);
     }
 
     public function mount()

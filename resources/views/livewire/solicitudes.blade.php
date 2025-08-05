@@ -10,7 +10,7 @@
                     <option value="RegistroPolicial" class="border-b border-gray-300 hover:bg-gray-200">Exclusión de Registro Policial</option>
                     <option value="SolicitudAdministrativa" class="border-b border-gray-300 hover:bg-gray-200">Exclusión por Solicitud Administrativa</option>
                     {{-- <option value="Dictamen" class="border-b border-gray-300 hover:bg-gray-200">Dictamen</option> --}}
-                    <option value="RegistroUnico" class="border-b border-gray-300 hover:bg-gray-200">Exclusión de Registro Único</option>
+                    {{-- <option value="RegistroUnico" class="border-b border-gray-300 hover:bg-gray-200">Exclusión de Registro Único</option> --}}
                 </select>
             </div>
         </div>
@@ -24,10 +24,10 @@
             @break
         {{-- @case('Dictamen')
             @livewire('dictamen')
-            @break --}}
-        @case('RegistroUnico')
-            @livewire('registro-unico')
             @break
+            @case('RegistroUnico')
+            @livewire('registro-unico')
+            @break--}}
     @endswitch
     </div>
 

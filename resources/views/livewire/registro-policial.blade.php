@@ -78,7 +78,16 @@
 
                                 <x-label>
                                     Nº de Cédula
-                                    <input type="text" wire:model="cedula" class="w-full rounded-lg block mt-2">
+                                    <input type="text" wire:model.live="cedula" class="w-full rounded-lg block mt-2">
+                                    @php
+                                        $existeCedula = null;
+                                        if (!empty($cedula)) {
+                                            $existeCedula = \App\Models\Persona::where('cedula', $cedula)->exists();
+                                        }
+                                    @endphp
+                                    @if ($existeCedula)
+                                        <span class="text-yellow-600 text-xs mt-2 block">Esta cédula ya existe. Se usará el registro existente.</span>
+                                    @endif
                                     @error('cedula')
                                         <span class="text-red-500 text-xs mt-3 block">{{ $message }}</span>
                                     @enderror
@@ -286,11 +295,19 @@
                                         <span class="text-red-500 text-xs mt-3 block ">{{ $message }}</span>
                                     @enderror
                                 </x-label>
-                                <x-label>
-                                    Nº de Cedula
-                                    <input wire:model="cedula_apoderado" type="text"
-                                        class="block rounded-lg mt-2 w-full">
-                                    @error('cedula')
+                                 <x-label>
+                                    Nº de Cédula Apoderado
+                                    <input type="text" wire:model.live="cedula_apoderado" class="w-full rounded-lg block mt-2">
+                                    @php
+                                        $existeCedulaApoderado = null;
+                                        if (!empty($cedula_apoderado)) {
+                                            $existeCedulaApoderado = \App\Models\Persona::where('cedula', $cedula_apoderado)->exists();
+                                        }
+                                    @endphp
+                                    @if ($existeCedulaApoderado)
+                                        <span class="text-yellow-600 text-xs mt-2 block">Esta cédula de apoderado ya existe. Se usará el registro existente.</span>
+                                    @endif
+                                    @error('cedula_apoderado')
                                         <span class="text-red-500 text-xs mt-3 block">{{ $message }}</span>
                                     @enderror
                                 </x-label>

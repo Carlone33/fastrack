@@ -39,9 +39,9 @@
                             {{ $a->solicitud->solicitante->primer_apellido ?? '' }}</td>
                         <td>{{ $a->created_at->format('d/m/Y') }}</td>
                         <td>
-                            <button wire:click="abrirModal('{{ $a->id }}', '{{ $a->tipo ?? $tipoSolicitud }}')"
+                            <button wire:click="verDetalles({{ $a->id }}, '{{ $a->tipo ?? $tipoSolicitud }}')"
                                 class="inline-flex items-center px-4 py-2 bg-green-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-gray-900 focus:outline-none hover:ring-2 focus:ring-green-500 hover:ring-offset-2 transition ease-in-out duration-150">
-                                Consultar
+                                Ver Detalle Completo
                             </button>
                         </td>
                         <td>
@@ -80,51 +80,7 @@
     @if ($modalOpen)
         <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div class="bg-white p-6 rounded shadow-lg w-96">
-                <h2 class="text-lg font-bold mb-4">Detalle de la Solicitud</h2>
-                @if ($registroSeleccionado)
-                    <p><strong>Guía:</strong> {{ $registroSeleccionado->guia }}</p>
-                    <p><strong>Solicitante:</strong>
-                        {{ $registroSeleccionado->solicitud->solicitante->primer_nombre ?? '' }}
-                        {{ $registroSeleccionado->solicitud->solicitante->primer_apellido ?? '' }}</p>
-                    <p><strong>Fecha:</strong> {{ $registroSeleccionado->created_at->format('d/m/Y') }}</p>
-
-                    <p><strong>Delito:</strong> {{ $registroSeleccionado->solicitud->registroSolicitud->delito ?? '-' }} </p>
-                    @if ($registroSeleccionado->tipo === 'RegistroPolicial' || $tipoSolicitud === 'RegistroPolicial')
-                        <p><strong>Nº de Oficio:</strong> {{ $registroSeleccionado->numero_oficio ?? '-' }} </p>
-                        <p><strong>Expediente del tribunal:</strong> {{ $registroSeleccionado->numero_expediente_tribunal ?? '-' }} </p>
-                    @endif
-
-                    {{-- Campos adicionales para el abogado según el tipo de solicitud --}}
-                    @if ($tipo_funcionario === 'abogado_funcionario_id')
-                        @if ($tipoSolicitud === 'RegistroPolicial')
-                            <div class="mt-4">
-                                <label class="block text-sm font-medium text-gray-700">Observaciones del abogado</label>
-                                <textarea wire:model.defer="registroSeleccionado.observaciones_abogado" class="w-full border rounded p-2 mt-1"></textarea>
-                            </div>
-                            <div class="mt-4 flex justify-end">
-                                <button wire:click="cambiarEstadoRegistroPolicial" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition">
-                                    Cambiar Estado
-                                </button>
-                            </div>
-                        @elseif ($tipoSolicitud === 'Administrativa')
-                            <div class="mt-4">
-                                <label class="block text-sm font-medium text-gray-700">Motivo administrativo</label>
-                                <input type="text" wire:model.defer="registroSeleccionado.motivo_administrativo" class="w-full border rounded p-2 mt-1" />
-                            </div>
-                        @elseif ($tipoSolicitud === 'Transcripción')
-                            <div class="mt-4">
-                                <label class="block text-sm font-medium text-gray-700">Notas del abogado</label>
-                                <textarea wire:model.defer="registroSeleccionado.notas_abogado" class="w-full border rounded p-2 mt-1"></textarea>
-                            </div>
-                        @endif
-                    @endif
-                @endif
-                <div class="flex justify-between mt-4">
-                    @if ($registroSeleccionado->tipo === 'RegistroPolicial' || $tipoSolicitud === 'RegistroPolicial')
-                        <x-icons.pdf wire:click="" class="px-3 py-1 border rounded"></x-icons.pdf>
-                    @endif
-                    <button wire:click="$set('modalOpen', false)" class="px-3 py-1 border rounded">Cerrar</button>
-                </div>
+                @livewire('detalle-solicitud', ['registro' => $registroSeleccionado, 'tipoSolicitud' => $tipoSolicitud, 'tipoFuncionario' => $tipo_funcionario], key($registroSeleccionado?->id ?? 'detalle'))
             </div>
         </div>
     @endif

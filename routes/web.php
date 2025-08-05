@@ -1,4 +1,3 @@
-
 <?php
 // Ruta para cambiar estado de solicitudes administrativas y registro único
 
@@ -68,6 +67,11 @@ Route::middleware([
     Route::get('/registro-policial/{registroId}/cambiar-estado', \App\Livewire\CambiarEstadoSolicitud::class)
         ->name('registro-policial.cambiar-estado-form');
     Route::aliasMiddleware('registro-policial.cambiar-estado', 'registro-policial.cambiar-estado-form');
+
+
+    // Ruta para ver detalles completos de la solicitud (Livewire)
+    Route::get('/solicitudes/detalle/{id}/{tipo}/{funcionario}', App\Livewire\DetalleSolicitudFull::class)
+        ->name('solicitudes.detalle.full');
 
     Route::get('/solicitud-generica/{solicitud}/cambiar-estado', App\Livewire\CambiarEstadoSolicitudGenerica::class)
     ->name('solicitud-generica.cambiar-estado-form');

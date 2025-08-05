@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -67,6 +66,11 @@ class Persona extends Model
         return $this->hasMany(RegistroPolicial::class, 'verificadopor_persona_id');
     }
 
+        // Relación para obtener todas las imágenes asociadas a la persona
+    public function imagenes(): HasMany
+    {
+        return $this->hasMany(Imagen::class, 'id', 'imagen_id');
+    }
 
 }
 

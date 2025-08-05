@@ -320,17 +320,21 @@ class RegistroPolicial extends Component
         ];
         foreach ($paratablaPersona as $key => $persona) {
             if (isset($persona['cedula'])) {
-                // Crear la persona y guardar su ID
-                $personaIds[$key] = Persona::create([
-                    'cedula' => $persona['cedula'],
-                    'nacionalidad' => $persona['nacionalidad'],
-                    'primer_nombre' => $persona['primernombre'],
-                    'segundo_nombre' => $persona['segundonombre'],
-                    'primer_apellido' => $persona['primerapellido'],
-                    'segundo_apellido' => $persona['segundoapellido'],
-                    'sexo' => $persona['sexo'],
-                    'correo' => $persona['email'],
-                ])->id;
+                $personaExistente = Persona::where('cedula', $persona['cedula'])->first();
+                if ($personaExistente) {
+                    $personaIds[$key] = $personaExistente->id;
+                } else {
+                    $personaIds[$key] = Persona::create([
+                        'cedula' => $persona['cedula'],
+                        'nacionalidad' => $persona['nacionalidad'],
+                        'primer_nombre' => $persona['primernombre'],
+                        'segundo_nombre' => $persona['segundonombre'],
+                        'primer_apellido' => $persona['primerapellido'],
+                        'segundo_apellido' => $persona['segundoapellido'],
+                        'sexo' => $persona['sexo'],
+                        'correo' => $persona['email'],
+                    ])->id;
+                }
             }
         }
 
@@ -459,23 +463,23 @@ class RegistroPolicial extends Component
         $imagenes_recopiladas = [
             'foto_solicitante' => [
                 'foto' => $this->foto,
-                'ruta' => $this->foto ? $this->foto->store('registropolicial') : null,
+                'ruta' => $this->foto ? $this->foto->store('registropolicial', 'public') : null,
             ],
             'cedula_solicitante' => [
                 'foto' => $this->foto_cedula_solicitante,
-                'ruta' => $this->foto_cedula_solicitante ? $this->foto_cedula_solicitante->store('registropolicial') : null,
+                'ruta' => $this->foto_cedula_solicitante ? $this->foto_cedula_solicitante->store('registropolicial', 'public') : null,
             ],
             'cedula_apoderado' => [
                 'foto' => $this->foto_cedula_apoderado,
-                'ruta' => $this->foto_cedula_apoderado ? $this->foto_cedula_apoderado->store('registropolicial') : null,
+                'ruta' => $this->foto_cedula_apoderado ? $this->foto_cedula_apoderado->store('registropolicial', 'public') : null,
             ],
             'oficio' => [
                 'foto' => $this->foto_oficio,
-                'ruta' => $this->foto_oficio ? $this->foto_oficio->store('registropolicial') : null,
+                'ruta' => $this->foto_oficio ? $this->foto_oficio->store('registropolicial', 'public') : null,
             ],
             'poder' => [
                 'foto' => $this->foto_poder,
-                'ruta' => $this->foto_poder ? $this->foto_poder->store('registropolicial') : null,
+                'ruta' => $this->foto_poder ? $this->foto_poder->store('registropolicial', 'public') : null,
             ],
         ];
 
@@ -484,7 +488,7 @@ class RegistroPolicial extends Component
             if ($imagen['ruta']) {
                 $img = new Imagen();
                 $img->tipo = $key;
-                $img->url = Storage::url($imagen['ruta']);
+                $img->url = $imagen['ruta']; // Solo la ruta relativa, ej: registropolicial/archivo.jpg
                 $img->fecha_registro = now()->toDateString();
                 $img->save();
                 $imagenId = $img->id;
@@ -625,6 +629,81 @@ class RegistroPolicial extends Component
                 'abogado_id' => 'required|exists:users,id',
             ]);
         }
+    }
+
+
+    public function updatedCedula($value)
+    {
+        $persona = \App\Models\Persona::where('cedula', $value)->first();
+        if ($persona) {
+            $this->nacionalidad = $persona->nacionalidad;
+            $this->primernombre = $persona->primer_nombre;
+            $this->segundonombre = $persona->segundo_nombre;
+            $this->primerapellido = $persona->primer_apellido;
+            $this->segundoapellido = $persona->segundo_apellido;
+            $this->sexo = $persona->sexo;
+            $this->email = $persona->correo;
+            // Teléfonos
+            $telefonos = $persona->telefonos;
+            foreach ($telefonos as $tel) {
+                if ($tel->tipo === 'movil') {
+                    $this->telefono = $tel->numero;
+                } elseif ($tel->tipo === 'local') {
+                    $this->telefonolocal = $tel->numero;
+                }
+            }
+            // Direcciones
+            $direccion = $persona->direcciones->first();
+            if ($direccion) {
+                $this->ubicaciones['solicitante']['estado'] = $this->getNomencladorIdByNombre($direccion->estado);
+                $this->ubicaciones['solicitante']['municipio'] = $this->getNomencladorIdByNombre($direccion->municipio);
+                $this->ubicaciones['solicitante']['parroquia'] = $this->getNomencladorIdByNombre($direccion->parroquia);
+                $this->ubicaciones['solicitante']['calle'] = $direccion->calle;
+                $this->ubicaciones['solicitante']['casa_edificio'] = $direccion->{'casa-edificio'};
+                $this->ubicaciones['solicitante']['piso'] = $direccion->piso;
+                $this->ubicaciones['solicitante']['apartamento'] = $direccion->apartamento;
+            }
+        }
+    }
+
+    public function updatedCedulaApoderado($value)
+    {
+        $persona = \App\Models\Persona::where('cedula', $value)->first();
+        if ($persona) {
+            $this->nacionalidad_apoderado = $persona->nacionalidad;
+            $this->primernombre_apoderado = $persona->primer_nombre;
+            $this->segundonombre_apoderado = $persona->segundo_nombre;
+            $this->primerapellido_apoderado = $persona->primer_apellido;
+            $this->segundoapellido_apoderado = $persona->segundo_apellido;
+            $this->sexo_apoderado = $persona->sexo;
+            $this->email_apoderado = $persona->correo;
+            // Teléfonos
+            $telefonos = $persona->telefonos;
+            foreach ($telefonos as $tel) {
+                if ($tel->tipo === 'movil') {
+                    $this->telefono_apoderado = $tel->numero;
+                } elseif ($tel->tipo === 'local') {
+                    $this->telefonolocal_apoderado = $tel->numero;
+                }
+            }
+            // Direcciones
+            $direccion = $persona->direcciones->first();
+            if ($direccion) {
+                $this->ubicaciones['apoderado']['estado'] = $this->getNomencladorIdByNombre($direccion->estado);
+                $this->ubicaciones['apoderado']['municipio'] = $this->getNomencladorIdByNombre($direccion->municipio);
+                $this->ubicaciones['apoderado']['parroquia'] = $this->getNomencladorIdByNombre($direccion->parroquia);
+                $this->ubicaciones['apoderado']['calle'] = $direccion->calle;
+                $this->ubicaciones['apoderado']['casa_edificio'] = $direccion->{'casa-edificio'};
+                $this->ubicaciones['apoderado']['piso'] = $direccion->piso;
+                $this->ubicaciones['apoderado']['apartamento'] = $direccion->apartamento;
+            }
+        }
+    }
+
+    private function getNomencladorIdByNombre($nombre)
+    {
+        $nomenclador = \App\Models\Nomenclador::where('nombre', $nombre)->first();
+        return $nomenclador ? $nomenclador->id : null;
     }
 
     public function render()
