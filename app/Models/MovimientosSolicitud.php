@@ -8,6 +8,16 @@ use Illuminate\Database\Eloquent\Model;
 class MovimientosSolicitud extends Model
 {
     use HasFactory;
+    /**
+     * Obtener historial de movimientos para una solicitud
+     */
+    public static function historial($solicitudId)
+    {
+        return static::where('solicitud_id', $solicitudId)
+            ->orderByDesc('created_at')
+            ->with('usuario')
+            ->get();
+    }
 
     protected $table = 'movimientos_solicitud';
 

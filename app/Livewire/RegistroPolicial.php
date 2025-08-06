@@ -163,20 +163,16 @@ class RegistroPolicial extends Component
     public function nextStep()
     {
         if ($this->currentStep == 1 && ($this->showAssigned == 1 || $this->showAssigned == 2)) {
-            // $this->validateCurrentStep();
-
+            $this->validateCurrentStep();
             $this->currentStep++;
         } elseif ($this->currentStep == 2 && $this->showAssigned == 2) {
-            // $this->validateCurrentStep();
-
+            $this->validateCurrentStep();
             $this->currentStep += 2;
         } elseif ($this->currentStep == 2 && $this->showAssigned == 1) {
-            // $this->validateCurrentStep();
-
+            $this->validateCurrentStep();
             $this->currentStep++;
         } elseif ($this->currentStep == 3 || $this->currentStep == 4) {
-            // $this->validateCurrentStep();
-
+            $this->validateCurrentStep();
             $this->currentStep++;
         } else {
             $this->currentStep = $this->currentStep;
@@ -551,7 +547,7 @@ class RegistroPolicial extends Component
         if ($this->currentStep == 2) {
             $this->validate([
                 'nacionalidad' => 'required|in:V,E',
-                'cedula' => 'required|numeric|digits_between:7,8|unique:persona,cedula',
+                'cedula' => 'required|numeric|digits_between:7,8',
                 'primernombre' => 'required|string|max:50',
                 'segundonombre' => 'nullable|string|max:50',
                 'primerapellido' => 'required|string|max:50',

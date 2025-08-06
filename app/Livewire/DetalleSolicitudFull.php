@@ -4,13 +4,11 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use Barryvdh\DomPDF\Facade\Pdf;
-
+use App\Models\MovimientosSolicitud;
 class DetalleSolicitudFull extends Component
 {
     public $registro;
     public $tipoSolicitud;
-    public $tipoFuncionario;
-
     public function mount($id, $tipo, $funcionario)
     {
         $this->tipoSolicitud = $tipo;
@@ -28,6 +26,7 @@ class DetalleSolicitudFull extends Component
             $this->registro = \App\Models\Solicitud::with(['solicitante', 'imagenes'])->findOrFail($id);
         }
     }
+
 
 
     public function generarPDFPolicial()

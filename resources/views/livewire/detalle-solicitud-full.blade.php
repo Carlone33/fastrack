@@ -8,30 +8,6 @@
 
     <!-- Acciones: Cambiar estado y PDF -->
     <div class="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4 mt-4 mb-8 max-w-3xl mx-auto">
-        <!-- Cambiar estado -->
-        <div x-data="{ open: false }" class="w-full max-w-xl">
-            <button @click="open = !open" type="button" class="w-full px-4 py-2 rounded bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition mb-2 flex items-center justify-between">
-                Cambiar estado
-                <svg :class="{'rotate-180': open}" class="h-5 w-5 ml-2 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            <div x-show="open" x-transition class="bg-white border border-blue-200 rounded p-4 mt-1 shadow">
-                <form wire:submit.prevent="cambiarEstado" class="flex flex-col sm:flex-row sm:items-center gap-2">
-                    @php
-                        $estadosDisponibles = $estadosDisponibles ?? ['Pendiente', 'En Proceso', 'Aprobada', 'Rechazada'];
-                        $nuevoEstado = $nuevoEstado ?? '';
-                        $descripcionEstado = $descripcionEstado ?? '';
-                    @endphp
-                    <select wire:model="nuevoEstado" class="rounded border-blue-300 focus:ring-blue-400 focus:border-blue-400 shadow px-3 py-2">
-                        <option value="">Selecciona estado...</option>
-                        @foreach($estadosDisponibles as $estado)
-                            <option value="{{ $estado }}">{{ $estado }}</option>
-                        @endforeach
-                    </select>
-                    <input type="text" wire:model="descripcionEstado" placeholder="Descripción del cambio" class="rounded border-blue-300 focus:ring-blue-400 focus:border-blue-400 shadow px-3 py-2 flex-1" required>
-                    <button type="submit" class="px-4 py-2 rounded bg-green-700 text-white font-bold shadow-lg hover:bg-green-800 border-2 border-green-800 transition disabled:opacity-50" @if(!$nuevoEstado || !$descripcionEstado) disabled @endif>Cambiar</button>
-                </form>
-            </div>
-        </div>
         @php
             use Illuminate\Support\Str;
             $tipo = Str::lower(trim($tipoSolicitud));

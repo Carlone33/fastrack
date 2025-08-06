@@ -82,13 +82,6 @@
                     @enderror
                 </div>
                 <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Unidad Administrativa</label>
-                    <input type="text" wire:model.defer="unidad_administrativa_id" class="w-full border rounded px-3 py-2 bg-gray-100" required>
-                    @error('unidad_administrativa_id')
-                        <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
-                    @enderror
-                </div>
-                <div>
                     <label class="block text-gray-700 text-sm font-bold mb-2">Rol</label>
                     <select wire:model.defer="rol" class="w-full border rounded px-3 py-2 bg-gray-100" required>
                     @error('rol')

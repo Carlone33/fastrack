@@ -25,6 +25,8 @@ class MovimientosSolicitud extends Component
 
     public function render()
     {
+        // Siempre recarga los movimientos antes de renderizar
+        $this->cargarMovimientos();
         return view('livewire.movimientos-solicitud', [
             'movimientos' => $this->movimientos
         ]);

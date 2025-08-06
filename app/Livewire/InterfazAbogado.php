@@ -13,7 +13,7 @@ class InterfazAbogado extends Component
 {
     use WithPagination;
 
-    public $search = '';
+    public $busqueda = '';
 
     public $tipo_funcionario;
 
@@ -30,23 +30,32 @@ class InterfazAbogado extends Component
     public $tipoSolicitud = '';
 
 
-    public function verDetalles($id, $tipo = null)
+    public function verDetalles($id, $tipo = null, $funcionario = null)
     {
-        // Redirige a la ruta de detalles con el id y tipo
-        return redirect()->route('solicitudes.detalle.full', ['id' => $id, 'tipo' => $tipo ?? $this->tipoSolicitud, 'funcionario' => $this->tipo_funcionario]);
+        // Redirige a la ruta de detalles con el id, tipo y funcionario
+        $funcionarioParam = $funcionario ?? $this->tipo_funcionario;
+        if (empty($funcionarioParam)) {
+            $funcionarioParam = 'abogado_funcionario_id';
+        }
+        return redirect()->route('solicitudes.detalle.full', [
+            'id' => $id,
+            'tipo' => $tipo ?? $this->tipoSolicitud,
+            'funcionario' => $funcionarioParam
+        ]);
     }
 
     public function mount()
     {
-        $this->rol_usuario = auth()->user()->roles->pluck('name')->first() ?? '';
+        $roles_usuario = auth()->user()->roles->pluck('name')->toArray();
+        $this->rol_usuario = $roles_usuario[0] ?? '';
 
         $this->selected_id = auth()->user()->funcionario->id;
 
-        if ($this->rol_usuario == 'Transcriptor') {
-
+        if (in_array('Superadministrador', $roles_usuario) || in_array('Administrador', $roles_usuario)) {
+            $this->tipo_funcionario = null; // Ver todos los registros
+        } elseif ($this->rol_usuario == 'Transcriptor') {
             $this->tipo_funcionario = 'registrador_funcionario_id';
         } else {
-
             $this->tipo_funcionario = 'abogado_funcionario_id';
         }
     }
@@ -68,6 +77,16 @@ class InterfazAbogado extends Component
                     $q->where('abogado_funcionario_id', $this->selected_id);
                 });
             }
+            if (!empty($this->busqueda)) {
+                $busqueda = mb_strtolower($this->busqueda);
+                $query->where(function($q) use ($busqueda) {
+                    $q->whereRaw('LOWER(guia) LIKE ?', ['%'.$busqueda.'%'])
+                      ->orWhereHas('solicitud.solicitante', function($q2) use ($busqueda) {
+                          $q2->whereRaw('LOWER(primer_nombre) LIKE ?', ['%'.$busqueda.'%'])
+                             ->orWhereRaw('LOWER(primer_apellido) LIKE ?', ['%'.$busqueda.'%']);
+                      });
+                });
+            }
             return $query->orderBy('created_at', 'desc')->paginate(8);
         }
 
@@ -81,6 +100,7 @@ class InterfazAbogado extends Component
             if ($this->tipo_funcionario === 'abogado_funcionario_id') {
                 $query->where('abogado_funcionario_id', $this->selected_id);
             }
+            // Si es superadministrador o administrador, no filtrar por funcionario
             return $query->orderBy('created_at', 'desc')->paginate(8);
         }
 
@@ -97,6 +117,16 @@ class InterfazAbogado extends Component
                     $q->where('abogado_funcionario_id', $this->selected_id);
                 });
             }
+            if (!empty($this->busqueda)) {
+                $busqueda = mb_strtolower($this->busqueda);
+                $query->where(function($q) use ($busqueda) {
+                    $q->whereRaw('LOWER(guia) LIKE ?', ['%'.$busqueda.'%'])
+                      ->orWhereHas('solicitud.solicitante', function($q2) use ($busqueda) {
+                          $q2->whereRaw('LOWER(primer_nombre) LIKE ?', ['%'.$busqueda.'%'])
+                             ->orWhereRaw('LOWER(primer_apellido) LIKE ?', ['%'.$busqueda.'%']);
+                      });
+                });
+            }
             return $query->orderBy('created_at', 'desc')->paginate(8);
         }
 
@@ -105,6 +135,7 @@ class InterfazAbogado extends Component
                 // relaciones necesarias
             ]);
             // Si hay relación con solicitud y abogado, agregar filtro aquí
+            // Si es superadministrador o administrador, no filtrar por funcionario
             return $query->orderBy('created_at', 'desc')->paginate(8);
         }
 
@@ -129,6 +160,23 @@ class InterfazAbogado extends Component
             });
             $solicitudesAdministrativas = $solicitudesAdministrativas->whereHas('solicitud', function($q) {
                 $q->where('abogado_funcionario_id', $this->selected_id);
+            });
+        }
+        if (!empty($this->busqueda)) {
+            $busqueda = mb_strtolower($this->busqueda);
+            $registrosPoliciales = $registrosPoliciales->where(function($q) use ($busqueda) {
+                $q->whereRaw('LOWER(guia) LIKE ?', ['%'.$busqueda.'%'])
+                  ->orWhereHas('solicitud.solicitante', function($q2) use ($busqueda) {
+                      $q2->whereRaw('LOWER(primer_nombre) LIKE ?', ['%'.$busqueda.'%'])
+                         ->orWhereRaw('LOWER(primer_apellido) LIKE ?', ['%'.$busqueda.'%']);
+                  });
+            });
+            $solicitudesAdministrativas = $solicitudesAdministrativas->where(function($q) use ($busqueda) {
+                $q->whereRaw('LOWER(guia) LIKE ?', ['%'.$busqueda.'%'])
+                  ->orWhereHas('solicitud.solicitante', function($q2) use ($busqueda) {
+                      $q2->whereRaw('LOWER(primer_nombre) LIKE ?', ['%'.$busqueda.'%'])
+                         ->orWhereRaw('LOWER(primer_apellido) LIKE ?', ['%'.$busqueda.'%']);
+                  });
             });
         }
         $registrosPoliciales = $registrosPoliciales->get()->map(function($item) {

@@ -35,7 +35,6 @@ class Crear extends Component
         'persona.sexo' => 'required|in:M,F',
         'persona.correo' => 'required|email',
         'credencial' => 'required|string|max:20|unique:funcionario,credencial',
-        'unidad_administrativa_id' => 'required|numeric',
         'rol' => 'required|string|exists:roles,name',
     ];
 
@@ -47,7 +46,7 @@ class Crear extends Component
         $funcionario = Funcionario::create([
             'persona_id' => $persona->id,
             'credencial' => $this->credencial,
-            'unidad_administrativa_id' => $this->unidad_administrativa_id,
+            'unidad_administrativa_id' => 8,
             ]);
 
             // Crear usuario y asignar rol

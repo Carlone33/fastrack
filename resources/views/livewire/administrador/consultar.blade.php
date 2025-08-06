@@ -16,38 +16,35 @@
                     <span class="text-gray-500">{{ $funcionario['persona']['cedula'] ?? '' }} | {{ $funcionario['credencial'] ?? '' }}</span>
                 </div>
             </div>
+            @include('livewire.administrador.editar-nombres', ['funcionarioData' => $funcionarioData, 'modo' => $modo])
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-gray-700 text-sm font-bold mb-2">Nacionalidad</label>
-                    <select wire:model.defer="funcionario.persona.nacionalidad" class="w-full border rounded px-3 py-2 bg-gray-100" @if($modo !== 'editar') disabled @endif>
-                        <option value="V" {{ ($funcionario['persona']['nacionalidad'] ?? '') == 'V' ? 'selected' : '' }}>Venezolano</option>
-                        <option value="E" {{ ($funcionario['persona']['nacionalidad'] ?? '') == 'E' ? 'selected' : '' }}>Extranjero</option>
+                    <select wire:model.defer="funcionarioData.persona.nacionalidad" class="w-full border rounded px-3 py-2 bg-gray-100" @if($modo !== 'editar') disabled @endif>
+                        <option value="V" {{ ($funcionarioData['persona']['nacionalidad'] ?? '') == 'V' ? 'selected' : '' }}>Venezolano</option>
+                        <option value="E" {{ ($funcionarioData['persona']['nacionalidad'] ?? '') == 'E' ? 'selected' : '' }}>Extranjero</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-gray-700 text-sm font-bold mb-2">Sexo</label>
-                    <select wire:model.defer="funcionario.persona.sexo" class="w-full border rounded px-3 py-2 bg-gray-100" @if($modo !== 'editar') disabled @endif>
-                        <option value="M" {{ ($funcionario['persona']['sexo'] ?? '') == 'M' ? 'selected' : '' }}>Masculino</option>
-                        <option value="F" {{ ($funcionario['persona']['sexo'] ?? '') == 'F' ? 'selected' : '' }}>Femenino</option>
+                    <select wire:model.defer="funcionarioData.persona.sexo" class="w-full border rounded px-3 py-2 bg-gray-100" @if($modo !== 'editar') disabled @endif>
+                        <option value="M" {{ ($funcionarioData['persona']['sexo'] ?? '') == 'M' ? 'selected' : '' }}>Masculino</option>
+                        <option value="F" {{ ($funcionarioData['persona']['sexo'] ?? '') == 'F' ? 'selected' : '' }}>Femenino</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-gray-700 text-sm font-bold mb-2">Correo</label>
-                    <input type="email" wire:model.defer="funcionario.persona.correo" class="w-full border rounded px-3 py-2 bg-gray-100" value="{{ $funcionario['persona']['correo'] ?? '' }}" @if($modo !== 'editar') readonly @endif>
+                    <input type="email" wire:model.defer="funcionarioData.persona.correo" class="w-full border rounded px-3 py-2 bg-gray-100" value="{{ $funcionarioData['persona']['correo'] ?? '' }}" @if($modo !== 'editar') readonly @endif>
                 </div>
                 <div>
                     <label class="block text-gray-700 text-sm font-bold mb-2">Credencial</label>
-                    <input type="text" wire:model.defer="funcionario.credencial" class="w-full border rounded px-3 py-2 bg-gray-100" value="{{ $funcionario['credencial'] ?? '' }}" @if($modo !== 'editar') readonly @endif>
+                    <input type="text" wire:model.defer="funcionarioData.credencial" class="w-full border rounded px-3 py-2 bg-gray-100" value="{{ $funcionarioData['credencial'] ?? '' }}" @if($modo !== 'editar') readonly @endif>
                 </div>
             </div>
             <div class="mt-8 grid grid-cols-2 gap-6">
                 <div>
                     <label class="block text-gray-700 text-sm font-bold mb-2">Cédula</label>
-                    <input type="text" wire:model.defer="funcionario.persona.cedula" class="w-full border rounded px-3 py-2 bg-gray-100" value="{{ $funcionario['persona']['cedula'] ?? '' }}" readonly>
-                </div>
-                <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Unidad Administrativa</label>
-                    <input type="text" class="w-full border rounded px-3 py-2 bg-gray-100" value="{{ $funcionario['unidad_administrativa_id'] ?? '' }}" readonly>
+                    <input type="text" wire:model.defer="funcionarioData.persona.cedula" class="w-full border rounded px-3 py-2 bg-gray-100" value="{{ $funcionarioData['persona']['cedula'] ?? '' }}" readonly>
                 </div>
             </div>
             <div class="mt-8 flex justify-end gap-4">
