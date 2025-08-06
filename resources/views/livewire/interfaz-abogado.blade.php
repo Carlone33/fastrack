@@ -11,7 +11,7 @@
             <option value="RegistroPolicial">Registro Policial</option>
             {{-- <option value="Transcripción">Dictamen</option> --}}
             <option value="Administrativa">Administrativa</option>
-            <option value="RegistroUnico">Registro Único</option>
+            {{-- <option value="RegistroUnico">Registro Único</option> --}}
         </select>
     </div>
 
@@ -22,8 +22,10 @@
                     <th>Guía</th>
                     <th>Nombre y Apellido Solicitante</th>
                     <th>Fecha</th>
+                    @role('Abogado')
                     <th>Consulta</th>
                     <th>Historial</th>
+                    @endrole
                     <th>Estado</th>
                     @if ($tipo_funcionario === 'abogado_funcionario_id' && ($tipoSolicitud === 'RegistroPolicial' || $tipoSolicitud === 'Administrativa' || $tipoSolicitud === 'RegistroUnico'))
                         <th>Cambiar Estado</th>
@@ -38,6 +40,7 @@
                         <td>{{ $a->solicitud->solicitante->primer_nombre ?? '' }}
                             {{ $a->solicitud->solicitante->primer_apellido ?? '' }}</td>
                         <td>{{ $a->created_at->format('d/m/Y') }}</td>
+                        @role('Abogado')
                         <td>
                             <button wire:click="verDetalles({{ $a->id }}, '{{ $a->tipo ?? $tipoSolicitud }}')"
                                 class="inline-flex items-center px-4 py-2 bg-green-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-gray-900 focus:outline-none hover:ring-2 focus:ring-green-500 hover:ring-offset-2 transition ease-in-out duration-150">
@@ -51,6 +54,7 @@
                                 Historial
                             </button>
                         </td>
+                        @endrole
                         <td>
                             {{ $a->solicitud->estado_solicitud ?? 'Sin estado' }}
                         </td>

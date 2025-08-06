@@ -417,10 +417,10 @@ class SolicitudAdministrativa extends Component
         }
 
         // Relaciones correctas (NO USAR attach en belongsTo)
-        $registroPolicial = ModelsSolicitudAdministrativa::find($registropolicialId);
-        if ($registroPolicial) {
-            $registroPolicial->solicitud_id = $solicitud->id;
-            $registroPolicial->save();
+        $registroAdministrativo = ModelsSolicitudAdministrativa::find($registroadministrativoId);
+        if ($registroAdministrativo) {
+            $registroAdministrativo->solicitud_id = $solicitud->id;
+            $registroAdministrativo->save();
         }
 
         // Relación de solicitud con abogado (si tienes tabla pivote, usa attach, si es belongsTo, solo guarda el id)
@@ -600,6 +600,39 @@ class SolicitudAdministrativa extends Component
         return $nomenclador ? $nomenclador->id : null;
     }
 
+        /**
+     * Crea un directorio en el disco 'public' si no existe.
+     */
+    public function makeDirectory($path)
+    {
+        if (!Storage::disk('public')->exists($path)) {
+            return Storage::disk('public')->makeDirectory($path);
+        }
+        return true;
+    }
+
+    /**
+     * Actualiza los permisos recursivamente en un directorio del disco 'public'.
+     * @param string $folder Carpeta base dentro de storage/app/public
+     * @param string $permissions Permisos en formato octal, por ejemplo '755'
+     */
+    public function updateRecursivePermissions($folder, $permissions = '755')
+    {
+        $basePath = storage_path('app/public/' . $folder);
+        if (is_dir($basePath)) {
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($basePath, \FilesystemIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::SELF_FIRST
+            );
+            foreach ($iterator as $item) {
+                @chmod($item, octdec($permissions));
+            }
+            // También la carpeta base
+            @chmod($basePath, octdec($permissions));
+            return true;
+        }
+        return false;
+    }
 
     public function render()
     {

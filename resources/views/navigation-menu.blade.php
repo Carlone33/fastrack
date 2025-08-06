@@ -20,7 +20,7 @@
                             {{ __('Crear Solicitud') }}
                         </x-nav-link>
                     @endcan
-                    @can('Ver transcripciones')
+                    @can('Ver Transcripciones')
                         <x-nav-link href="{{ route('menu') }}" :active="request()->routeIs('menu')">
                             {{ __('Solicitudes') }}
                         </x-nav-link>
@@ -30,11 +30,11 @@
                             {{ __('Administrador') }}
                         </x-nav-link>
                     @endcan
-                    @can('Ver permisos')
+                    {{-- @can('Ver permisos')
                         <x-nav-link href="{{ route('permisos') }}" :active="request()->routeIs('permisos')">
                             {{ __('Permisos') }}
                         </x-nav-link>
-                    @endcan
+                    @endcan --}}
 
 
 

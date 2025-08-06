@@ -39,7 +39,7 @@ class RoleSeeder extends Seeder
         Permission::Create(['name' => 'Eliminar permisos'])->assignRole($permisologo);
 
         Permission::Create(['name' => 'Crear transcripciones'])->assignRole($transcriptor);
-        Permission::Create(['name' => 'Ver transcripciones'])->syncRoles($abogado, $transcriptor);
+        Permission::Create(['name' => 'Ver Transcripciones'])->syncRoles([$abogado, $transcriptor]);
 
 
         $superadministrador->syncPermissions(Permission::all());

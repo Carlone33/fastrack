@@ -1,11 +1,55 @@
 <div>
     <div class="mb-4">
         <h2 class="text-2xl font-bold text-center mb-2">Detalles de la Solicitud</h2>
-        <div class="flex justify-center">
+        <div class="flex justify-end">
             <a href="{{ url()->previous() }}" class="px-6 py-2 rounded-full bg-gradient-to-r from-blue-600 to-blue-400 text-white font-semibold shadow-lg hover:from-blue-700 hover:to-blue-500 transition-all duration-200 text-lg border-2 border-blue-200 hover:border-blue-400">Volver</a>
         </div>
     </div>
 
+    <!-- Acciones: Cambiar estado y PDF -->
+    <div class="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4 mt-4 mb-8 max-w-3xl mx-auto">
+        <!-- Cambiar estado -->
+        <div x-data="{ open: false }" class="w-full max-w-xl">
+            <button @click="open = !open" type="button" class="w-full px-4 py-2 rounded bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition mb-2 flex items-center justify-between">
+                Cambiar estado
+                <svg :class="{'rotate-180': open}" class="h-5 w-5 ml-2 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            <div x-show="open" x-transition class="bg-white border border-blue-200 rounded p-4 mt-1 shadow">
+                <form wire:submit.prevent="cambiarEstado" class="flex flex-col sm:flex-row sm:items-center gap-2">
+                    @php
+                        $estadosDisponibles = $estadosDisponibles ?? ['Pendiente', 'En Proceso', 'Aprobada', 'Rechazada'];
+                        $nuevoEstado = $nuevoEstado ?? '';
+                        $descripcionEstado = $descripcionEstado ?? '';
+                    @endphp
+                    <select wire:model="nuevoEstado" class="rounded border-blue-300 focus:ring-blue-400 focus:border-blue-400 shadow px-3 py-2">
+                        <option value="">Selecciona estado...</option>
+                        @foreach($estadosDisponibles as $estado)
+                            <option value="{{ $estado }}">{{ $estado }}</option>
+                        @endforeach
+                    </select>
+                    <input type="text" wire:model="descripcionEstado" placeholder="Descripción del cambio" class="rounded border-blue-300 focus:ring-blue-400 focus:border-blue-400 shadow px-3 py-2 flex-1" required>
+                    <button type="submit" class="px-4 py-2 rounded bg-green-700 text-white font-bold shadow-lg hover:bg-green-800 border-2 border-green-800 transition disabled:opacity-50" @if(!$nuevoEstado || !$descripcionEstado) disabled @endif>Cambiar</button>
+                </form>
+            </div>
+        </div>
+        @php
+            use Illuminate\Support\Str;
+            $tipo = Str::lower(trim($tipoSolicitud));
+        @endphp
+        @if(Str::contains($tipo, 'registropolicial'))
+            <button wire:click="generarPDFPolicial" class="px-4 py-2 rounded bg-blue-700 text-white font-bold shadow hover:bg-blue-800 transition flex items-center gap-2 border border-blue-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                PDF Registro Policial
+            </button>
+        @endif
+        @if(Str::contains($tipo, 'administrativa'))
+            <button wire:click="generarPDFAdministrativa" class="px-4 py-2 rounded bg-red-700 text-white font-bold shadow hover:bg-red-800 transition flex items-center gap-2 border border-red-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                PDF Solicitud Administrativa
+            </button>
+        @endif
+        <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    </div>
     <!-- Galería de imágenes -->
     <div class="mb-8">
         <h3 class="font-semibold mb-4 text-lg text-center">Imágenes asociadas</h3>
@@ -182,36 +226,38 @@
                         <td class="font-semibold text-gray-700">Funcionario encargado</td>
                         <td>
                             @php
-                                // Buscar el funcionario desde la solicitud o el registro
-                                $funcionario = $registro['solicitud']['funcionario'] ?? $registro->solicitud->funcionario ?? $registro['funcionario'] ?? $registro->funcionario ?? null;
-                                $credencial = '-';
-                                $nombreF = '-';
-                                if ($funcionario) {
-                                    $credencial = $funcionario['credencial'] ?? $funcionario->credencial ?? '-';
-                                    // Buscar la persona asociada correctamente
-                                    if (is_array($funcionario)) {
-                                        $personaF = $funcionario['persona'] ?? null;
-                                    } else {
-                                        // Si es modelo Eloquent
-                                        $personaF = null;
-                                        if (isset($funcionario->persona) && $funcionario->persona) {
-                                            $personaF = $funcionario->persona;
-                                        } elseif (method_exists($funcionario, 'persona')) {
-                                            $personaF = $funcionario->persona()->first();
-                                        }
-                                    }
+                                $abogado = $registro['solicitud']['abogado'] ?? $registro->solicitud->abogado ?? null;
+                                $credencial = null;
+                                $nombreF = null;
+                                if ($abogado) {
+                                    $credencial = is_array($abogado) ? ($abogado['credencial'] ?? null) : ($abogado->credencial ?? null);
+                                    $personaF = is_array($abogado) ? ($abogado['persona'] ?? null) : ($abogado->persona ?? null);
                                     if ($personaF) {
-                                        $pnomF = $personaF['primer_nombre'] ?? $personaF->primer_nombre ?? '';
-                                        $snomF = $personaF['segundo_nombre'] ?? $personaF->segundo_nombre ?? '';
-                                        $papeF = $personaF['primer_apellido'] ?? $personaF->primer_apellido ?? '';
-                                        $sapeF = $personaF['segundo_apellido'] ?? $personaF->segundo_apellido ?? '';
+                                        if (is_array($personaF)) {
+                                            $pnomF = $personaF['primer_nombre'] ?? '';
+                                            $snomF = $personaF['segundo_nombre'] ?? '';
+                                            $papeF = $personaF['primer_apellido'] ?? '';
+                                            $sapeF = $personaF['segundo_apellido'] ?? '';
+                                        } else {
+                                            $pnomF = $personaF->primer_nombre ?? '';
+                                            $snomF = $personaF->segundo_nombre ?? '';
+                                            $papeF = $personaF->primer_apellido ?? '';
+                                            $sapeF = $personaF->segundo_apellido ?? '';
+                                        }
                                         $nombreF = trim($pnomF.' '.$snomF.' '.$papeF.' '.$sapeF);
-                                        if ($nombreF === '') $nombreF = '-';
+                                        if ($nombreF === '') $nombreF = null;
                                     }
                                 }
                             @endphp
-                            <span class="block font-semibold">Credencial: {{ $credencial }}</span>
-                            <span class="block">{{ $nombreF }}</span>
+                            @if(!$abogado)
+                                <span class="block text-red-600">No hay abogado asociado a la solicitud.</span>
+                            @elseif(!$personaF)
+                                <span class="block text-red-600">No hay datos de persona para el abogado.</span>
+                                <span class="block text-xs text-gray-400">Debug abogado: {{ json_encode($abogado) }}</span>
+                            @else
+                                <span class="block font-semibold">Credencial: {{ $credencial ?? '-' }}</span>
+                                <span class="block">{{ $nombreF ?? '-' }}</span>
+                            @endif
                         </td>
                     </tr>
                     <tr><td colspan="2" class="h-2"></td></tr>
@@ -322,34 +368,4 @@
                 </tbody>
             </table>
             </div>
-    <!-- Acciones: Cambiar estado y PDF -->
-    <div class="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4 mt-8 mb-4">
-        <!-- Cambiar estado -->
-        <form wire:submit.prevent="cambiarEstado" class="flex items-center gap-2">
-            @php
-                $estadosDisponibles = $estadosDisponibles ?? ['Pendiente', 'En Proceso', 'Aprobada', 'Rechazada'];
-                $nuevoEstado = $nuevoEstado ?? '';
-            @endphp
-            <select wire:model="nuevoEstado" class="rounded-lg border-blue-300 focus:ring-blue-400 focus:border-blue-400 shadow px-3 py-2">
-                <option value="">Cambiar estado...</option>
-                @foreach($estadosDisponibles as $estado)
-                    <option value="{{ $estado }}">{{ $estado }}</option>
-                @endforeach
-            </select>
-            <button type="submit" class="px-4 py-2 rounded bg-green-600 text-white font-semibold shadow hover:bg-green-700 transition disabled:opacity-50" @if(!$nuevoEstado) disabled @endif>Cambiar</button>
-        </form>
-        <!-- Mostrar valor real de tipoSolicitud para depuración -->
-        <!-- Botones PDF según tipo de solicitud -->
-        @if(strtolower($tipoSolicitud) == 'registropolicial')
-            <button wire:click="generarPDFPolicial" class="px-4 py-2 rounded bg-gradient-to-r from-blue-600 to-blue-400 text-white font-bold shadow-lg hover:from-blue-700 hover:to-blue-500 transition-all duration-200 flex items-center gap-2 border-2 border-blue-300 hover:border-blue-500">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                PDF Registro Policial
-            </button>
-        @elseif(strtolower($tipoSolicitud) == 'solicitudadministrativa')
-            <button wire:click="generarPDFAdministrativa" class="px-4 py-2 rounded bg-gradient-to-r from-red-600 to-pink-500 text-white font-bold shadow-lg hover:from-red-700 hover:to-pink-600 transition-all duration-200 flex items-center gap-2 border-2 border-red-300 hover:border-red-500">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                PDF Solicitud Administrativa
-            </button>
-        @endif
-    </div>
 </div>

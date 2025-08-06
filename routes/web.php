@@ -53,7 +53,7 @@ Route::middleware([
     Route::get('/solicitudes', Solicitudes::class)->middleware('can:Crear transcripciones')->name('solicitudes');
     Route::get('/admin', InterfazAdministrador::class)->middleware('can:Ver usuarios')->name('admin');
     Route::get('/permisos', InterfazPermisologia::class)->middleware('can:Ver permisos')->name('permisos');
-    Route::get('/menu', InterfazAbogado::class)->middleware('can:Ver transcripciones')->name('menu');
+    Route::get('/menu', InterfazAbogado::class)->middleware('can:Ver Transcripciones')->name('menu');
     Route::get('/buscar-abogados', [AbogadoController::class, 'buscar'])->name('buscar.abogados');
 
     // Ruta para consultar/editar/crear funcionario en vista compartida

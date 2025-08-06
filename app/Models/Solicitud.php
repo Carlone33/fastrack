@@ -43,7 +43,7 @@ class Solicitud extends Model
 
     public function abogado(): BelongsTo
     {
-        return $this->belongsTo(Persona::class, 'abogado_funcionario_id');
+        return $this->belongsTo(Funcionario::class, 'abogado_funcionario_id');
     }
 
     public function registroUnico(): HasOne

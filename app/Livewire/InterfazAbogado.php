@@ -54,82 +54,95 @@ class InterfazAbogado extends Component
     #[Computed()]
     public function resultados()
     {
-        // Filtra según el tipo seleccionado
-            if ($this->tipoSolicitud === 'RegistroPolicial') {
-            return RegistroPolicial::with([
+        // Filtra según el tipo seleccionado y el funcionario si es abogado
+        if ($this->tipoSolicitud === 'RegistroPolicial') {
+            $query = RegistroPolicial::with([
                 'solicitud',
                 'solicitud.solicitante',
                 'solicitud.apoderado',
                 'solicitud.abogado',
                 'solicitud.registroSolicitud',
-            ])
-                ->orderBy('created_at', 'desc')
-                ->paginate(8);
+            ]);
+            if ($this->tipo_funcionario === 'abogado_funcionario_id') {
+                $query->whereHas('solicitud', function($q) {
+                    $q->where('abogado_funcionario_id', $this->selected_id);
+                });
+            }
+            return $query->orderBy('created_at', 'desc')->paginate(8);
         }
 
         if ($this->tipoSolicitud === 'Transcripción') {
-            return Solicitud::with([
+            $query = Solicitud::with([
                 'solicitante',
                 'apoderado',
                 'abogado',
                 'registroSolicitud',
-            ])
-                ->where('tipo_solicitud', 'Transcripción')
-                ->orderBy('created_at', 'desc')
-                ->paginate(8);
+            ])->where('tipo_solicitud', 'Transcripción');
+            if ($this->tipo_funcionario === 'abogado_funcionario_id') {
+                $query->where('abogado_funcionario_id', $this->selected_id);
+            }
+            return $query->orderBy('created_at', 'desc')->paginate(8);
         }
 
         if ($this->tipoSolicitud === 'Administrativa') {
-            return SolicitudAdministrativa::with([
+            $query = SolicitudAdministrativa::with([
                 'solicitud',
                 'solicitud.solicitante',
                 'solicitud.apoderado',
                 'solicitud.abogado',
                 'solicitud.registroSolicitud',
-            ])
-                ->orderBy('created_at', 'desc')
-                ->paginate(8);
+            ]);
+            if ($this->tipo_funcionario === 'abogado_funcionario_id') {
+                $query->whereHas('solicitud', function($q) {
+                    $q->where('abogado_funcionario_id', $this->selected_id);
+                });
+            }
+            return $query->orderBy('created_at', 'desc')->paginate(8);
         }
 
         if ($this->tipoSolicitud === 'RegistroUnico') {
-            return RegistroUnico::with([
+            $query = RegistroUnico::with([
                 // relaciones necesarias
-            ])
-                ->orderBy('created_at', 'desc')
-                ->paginate(8);
+            ]);
+            // Si hay relación con solicitud y abogado, agregar filtro aquí
+            return $query->orderBy('created_at', 'desc')->paginate(8);
         }
 
         // Si no hay filtro, muestra todos juntos (concatenado y paginado manualmente)
-
         $registrosPoliciales = RegistroPolicial::with([
             'solicitud',
             'solicitud.solicitante',
             'solicitud.apoderado',
             'solicitud.abogado',
             'solicitud.registroSolicitud',
-        ])->get()->map(function($item) {
-            $item->tipo = 'RegistroPolicial';
-            return $item;
-        });
-
+        ]);
         $solicitudesAdministrativas = SolicitudAdministrativa::with([
             'solicitud',
             'solicitud.solicitante',
             'solicitud.apoderado',
             'solicitud.abogado',
             'solicitud.registroSolicitud',
-        ])->get()->map(function($item) {
+        ]);
+        if ($this->tipo_funcionario === 'abogado_funcionario_id') {
+            $registrosPoliciales = $registrosPoliciales->whereHas('solicitud', function($q) {
+                $q->where('abogado_funcionario_id', $this->selected_id);
+            });
+            $solicitudesAdministrativas = $solicitudesAdministrativas->whereHas('solicitud', function($q) {
+                $q->where('abogado_funcionario_id', $this->selected_id);
+            });
+        }
+        $registrosPoliciales = $registrosPoliciales->get()->map(function($item) {
+            $item->tipo = 'RegistroPolicial';
+            return $item;
+        });
+        $solicitudesAdministrativas = $solicitudesAdministrativas->get()->map(function($item) {
             $item->tipo = 'Administrativa';
             return $item;
         });
-
-        // Puedes agregar aquí otros tipos si lo deseas
-
         $all = $registrosPoliciales->concat($solicitudesAdministrativas);
         $all = $all->sortByDesc(function($item) {
             return $item->created_at;
         });
-
         // Paginación manual
         $page = request()->get('page', 1);
         $perPage = 8;

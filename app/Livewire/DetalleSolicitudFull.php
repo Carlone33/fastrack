@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class DetalleSolicitudFull extends Component
 {
@@ -28,8 +29,6 @@ class DetalleSolicitudFull extends Component
         }
     }
 
-
-use Barryvdh\DomPDF\Facade\Pdf;
 
     public function generarPDFPolicial()
     {
