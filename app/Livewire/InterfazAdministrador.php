@@ -51,8 +51,8 @@ class InterfazAdministrador extends Component
     }
     public function abrirModalconEdicion($id)
     {
-        // Redirige a la vista compartida en modo edición
-        return redirect()->route('funcionarios.consultar', ['id' => $id, 'modo' => 'editar']);
+        // Redirige a la ruta web de edición para cargar el controlador y la vista
+        return redirect()->route('funcionarios.editar', ['id' => $id]);
     }
 
     public function abrirModalYEnviarparaCrear(){

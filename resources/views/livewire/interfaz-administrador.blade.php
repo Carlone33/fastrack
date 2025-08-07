@@ -55,7 +55,7 @@
                                     </td>
                                     <td class="w-24 border border-b-gray-300 border-t-gray-300">
                                         @can('Editar usuarios')
-                                            <button onclick="window.location.href='{{ route('funcionarios.consultar', ['id' => $funcionario->id, 'modo' => 'editar']) }}'">
+                                            <button onclick="window.location.href='{{ route('funcionarios.editar', ['id' => $funcionario->id]) }}'">
                                                 <x-icons.editar />
                                             </button>
                                         @endcan

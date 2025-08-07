@@ -58,6 +58,7 @@ Route::middleware([
 
     // Ruta para consultar/editar/crear funcionario en vista compartida
     Route::get('/funcionarios/{id}/consultar', Consultar::class)->middleware('can:Ver usuarios')->name('funcionarios.consultar');
+    Route::get('/funcionarios/{id}/editar', \App\Livewire\Administrador\Editar::class)->middleware('can:Editar usuarios')->name('funcionarios.editar');
     Route::get('/funcionarios/crear', Crear::class)->middleware('can:Crear usuarios')->name('funcionarios.crear');
 
     Route::get('/solicitud/{solicitud}/movimientos', MovimientosSolicitud::class)
